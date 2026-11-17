@@ -156,13 +156,20 @@ import { getAnalytics } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAfVwExAkDLrz1CAe5QtKBrWHaNM_QvLwA",
-  authDomain: "nst-hongsonsuksa.firebaseapp.com",
-  projectId: "nst-hongsonsuksa",
-  storageBucket: "nst-hongsonsuksa.firebasestorage.app",
-  messagingSenderId: "632429950633",
-  appId: "1:632429950633:web:5f636b68d815b64f1e5bb8",
-  measurementId: "G-7055X8FHRV"
+  const firebaseConfig = {
+    apiKey: "AIzaSyAfVwExAkDLrz1CAe5QtKBrWHaNM_QvLwA",
+    authDomain: "nst-hongsonsuksa.firebaseapp.com",
+    projectId: "nst-hongsonsuksa",
+    storageBucket: "nst-hongsonsuksa.firebasestorage.app",
+    messagingSenderId: "632429950633",
+    appId: "1:632429950633:web:5f636b68d815b64f1e5bb8",
+    measurementId: "G-7055X8FHRV"
+};
+
+// เรียกใช้งานผ่านตัวแปร global ของ Firebase 9 Compat ที่โหลดมาด้านบน
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 };
 
 // Initialize Firebase
@@ -390,49 +397,40 @@ const analytics = getAnalytics(app);
         }
 
         // ตรวจสอบความถูกต้องและล็อกอิน
-        function handleLogin(e) {
+                function handleLogin(e) {
             e.preventDefault();
             const year = document.getElementById('student-year').value;
             const nameInput = document.getElementById('student-name-input').value.trim();
             const passInput = document.getElementById('student-pass').value.trim();
 
-            // ค้นหานักศึกษาวิชาทหารจากฐานข้อมูล
-            // ค้นหานักศึกษาวิชาทหารจากฐานข้อมูล (แปลง year เป็น String เพื่อให้เทียบกันได้ชัวร์)
-const student = masterStudents.find(s => String(s.year) === String(year) && String(s.id || s.code || s.studentId || '').trim() === passInput.trim());
-
-
+            const student = masterStudents.find(s => 
+                String(s.year) === String(year) && 
+                s.name.includes(nameInput) && 
+                String(s.id).trim() === passInput.trim()
+            );
 
             if (!student) {
                 alert("ข้อมูลไม่ถูกต้อง! กรุณาตรวจสอบ ชั้นปี ชื่อ-นามสกุล และรหัสผ่าน (เลขประจำตัว นศท.) ให้ตรงกัน");
                 return;
             }
 
-            // ตรวจสอบคำนำหน้าและเพศพื้นฐาน
-            const isFemaleName = student.name.includes("หญิง");
-            const isInputFemale = nameInput.includes("หญิง");
-            if (isFemaleName !== isInputFemale) {
-                alert("คำนำหน้าชื่อไม่ตรงกับฐานข้อมูลเพศของ นศท. กรุณาตรวจสอบอีกครั้ง");
-                return;
-            }
-
-            // ดึงข้อมูลประวัติการขาดจาก Firebase Firestore
-            db.collection("attendance").doc(student.id).get().then(doc => {
+            db.collection("attendance").doc(String(student.id)).get().then(doc => {
                 let records = [];
                 let absenceCount = 0;
 
                 if (doc.exists) {
                     const data = doc.data();
-                    records = data.records || [];
-                    absenceCount = data.absenceCount || 0;
+                    records = data.records || data.history || [];
+                    absenceCount = Number(data.absenceCount || data.absences || 0);
                 }
 
-                // แสดงผลลัพธ์
                 showDashboard(student, absenceCount, records);
             }).catch(err => {
                 console.error("Error loading data:", err);
                 showDashboard(student, 0, []);
             });
         }
+
 
         function showDashboard(student, count, records) {
             document.getElementById('login-card').classList.add('hidden');
