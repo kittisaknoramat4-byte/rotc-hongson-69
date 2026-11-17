@@ -397,7 +397,9 @@ const analytics = getAnalytics(app);
             const passInput = document.getElementById('student-pass').value.trim();
 
             // ค้นหานักศึกษาวิชาทหารจากฐานข้อมูล
-            const student = masterStudents.find(s => s.id === passInput && s.year === year && s.name.includes(nameInput));
+            // ค้นหานักศึกษาวิชาทหารจากฐานข้อมูล (แปลง year เป็น String เพื่อให้เทียบกันได้ชัวร์)
+const student = masterStudents.find(s => String(s.year) === String(year) && s.id.trim() === passInput.trim());
+
 
             if (!student) {
                 alert("ข้อมูลไม่ถูกต้อง! กรุณาตรวจสอบ ชั้นปี ชื่อ-นามสกุล และรหัสผ่าน (เลขประจำตัว นศท.) ให้ตรงกัน");
