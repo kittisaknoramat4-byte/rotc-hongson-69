@@ -398,7 +398,8 @@ const analytics = getAnalytics(app);
 
             // ค้นหานักศึกษาวิชาทหารจากฐานข้อมูล
             // ค้นหานักศึกษาวิชาทหารจากฐานข้อมูล (แปลง year เป็น String เพื่อให้เทียบกันได้ชัวร์)
-const student = masterStudents.find(s => String(s.year) === String(year) && s.id.trim() === passInput.trim());
+const student = masterStudents.find(s => String(s.year) === String(year) && String(s.id || s.code || s.studentId || '').trim() === passInput.trim());
+
 
 
             if (!student) {
