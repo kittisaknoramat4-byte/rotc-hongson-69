@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเช็คชื่อ นศท. - โรงเรียนห้องสอนศึกษา</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Sarabun -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f4; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-gray-800">
+
+    <div>
+        <!-- HEADER -->
+        <header class="bg-emerald-900 text-white shadow-md py-4 px-6">
+            <div class="max-w-4xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <!-- ตราสัญลักษณ์กองพัน -->
+                    <img src="https://via.placeholder.com/60" alt="ตรากองพัน" class="w-12 h-12 object-contain bg-white rounded-full p-1" id="logo-img">
+                    <div>
+                        <h1 class="text-lg font-bold tracking-wide">กองพันนักศึกษาวิชาทหาร</h1>
+                        <p class="text-xs text-emerald-200">โรงเรียนห้องสอนศึกษา ในพระอุปถัมภ์ฯ</p>
+                    </div>
+                </div>
+                <div class="text-right hidden sm:block">
+                    <span class="text-xs bg-emerald-800 text-emerald-200 px-3 py-1 rounded-full border border-emerald-700">ระบบตรวจสอบการขาด-ลา</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTAINER -->
+        <main class="max-w-2xl mx-auto p-4 sm:p-6 mt-4">
+            
+            <!-- LOGIN CARD -->
+            <div id="login-card" class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <div class="w-14 h-14 bg-emerald-50 text-emerald-800 rounded-full flex items-center justify-center mx-auto mb-3 text-xl shadow-inner">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-emerald-950">เข้าสู่ระบบตรวจสอบประวัติ นศท.</h2>
+                    <p class="text-xs text-gray-500 mt-1">กรอกชื่อและรหัสประจำตัวเพื่อดูผลการเข้าร่วมกิจกรรม</p>
+                </div>
+
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 relative">
+                    <!-- ชั้นปี -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">เลือกชั้นปี</label>
+                        <select id="student-year" required class="w-full text-sm p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-700 outline-none bg-white">
+                            <option value="">-- เลือกชั้นปี --</option>
+                            <option value="1">นักศึกษาวิชาทหาร ชั้นปีที่ 1</option>
+                            <option value="2">นักศึกษาวิชาทหาร ชั้นปีที่ 2</option>
+                            <option value="3">นักศึกษาวิชาทหาร ชั้นปีที่ 3</option>
+                        </select>
+                    </div>
+
+                    <!-- ค้นหาชื่อพร้อมระบบ Autocomplete ใกล้เคียง -->
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">ชื่อ-นามสกุล (พิมพ์ค้นหาหรือเลือก)</label>
+                        <input type="text" id="student-name-input" placeholder="เช่น กฤตภาส หรือ นศท. กฤตภาส" autocomplete="off" required 
+                            oninput="filterNames(this.value)" class="w-full text-sm p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-700 outline-none">
+                        
+                        <!-- Dropdown แนะนำชื่อ -->
+                        <div id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-1 shadow-lg max-h-48 overflow-y-auto hidden"></div>
+                    </div>
+
+                    <!-- รหัสผ่าน (เลขประจำตัว นศท.) -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">รหัสผ่าน (เลขประจำตัว นศท. 10 หลัก)</label>
+                        <input type="password" id="student-pass" placeholder="กรอกเลขประจำตัว นศท." required class="w-full text-sm p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-700 outline-none">
+                    </div>
+
+                    <button type="submit" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-semibold py-3 rounded-xl transition shadow-sm text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>ตรวจสอบข้อมูล</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- RESULT DISPLAY CARD (ซ่อนไว้ก่อนจนกว่าจะล็อกอินผ่าน) -->
+            <div id="result-card" class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6 sm:p-8 hidden space-y-6">
+                <div class="flex justify-between items-start border-b pb-4">
+                    <div>
+                        <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-md" id="res-year-badge">ชั้นปี</span>
+                        <h2 class="text-xl font-bold text-gray-900 mt-2" id="res-name">-</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">เลขประจำตัว: <span id="res-id" class="font-mono font-semibold text-gray-700">-</span></p>
+                    </div>
+                    <button onclick="logout()" class="text-xs text-gray-500 hover:text-red-600 bg-gray-100 px-3 py-1.5 rounded-lg transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ
+                    </button>
+                </div>
+
+                <!-- สรุปสถิติการขาด -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <span class="text-xs text-gray-500 font-medium">จำนวนครั้งที่ขาดกิจกรรม (รวม)</span>
+                        <div class="text-2xl font-bold text-gray-800 mt-1" id="res-absence-count">0 ครั้ง</div>
+                    </div>
+                    <div id="alert-box" class="p-4 rounded-xl border flex items-center gap-3 bg-emerald-50 border-emerald-200 text-emerald-900">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-xl" id="alert-icon"></i>
+                        <div>
+                            <div class="text-xs font-bold" id="alert-title">สถานะปกติ</div>
+                            <div class="text-[11px] opacity-80" id="alert-desc">การเข้าร่วมกิจกรรมอยู่ในเกณฑ์ปกติ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ตารางประวัติการขาด-ลา -->
+                <div>
+                    <h3 class="text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">ประวัติการบันทึกข้อมูลจากผู้บังคับบัญชา</h3>
+                    <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-gray-50 text-gray-600 border-b">
+                                <tr>
+                                    <th class="p-3 font-bold">วันที่ / ครั้งที่</th>
+                                    <th class="p-3 font-bold">สถานะ (เช้า / เย็น)</th>
+                                    <th class="p-3 font-bold">หมายเหตุ / ดุลพินิจ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body" class="divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="3" class="p-4 text-center text-gray-400">ยังไม่มีประวัติการขาดกิจกรรม</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-emerald-950 text-emerald-300 text-center py-4 text-xs mt-10">
+        <p>กองพันนักศึกษาวิชาทหาร โรงเรียนห้องสอนศึกษา ในพระอุปถัมภ์ฯ</p>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ตั้งค่า Firebase (แทนที่ด้วยค่าจริงของคุณ)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ฐานข้อมูลรายชื่อ 165 นาย (ตามข้อมูลที่กำหนด)
+        const masterStudents = [
+            // ปี 1 ชาย
+            { id: "1694400191", name: "นศท. กฤตภาส เชิดชูไพล", year: "1", gender: "M" },
+            { id: "1694400192", name: "นศท. กันต์กวี เลายี่ปา", year: "1", gender: "M" },
+            { id: "1694400193", name: "นศท. กันตพัฒน์ ปฐมกรณ์", year: "1", gender: "M" },
+            { id: "1694400194", name: "นศท. กิตติทัต สลักจิตสกุล", year: "1", gender: "M" },
+            { id: "1694400195", name: "นศท. กิตติพงศ์ หว่างไม", year: "1", gender: "M" },
+            { id: "1694400196", name: "นศท. กิตติศักดิ์ ประวีณชัยกุล", year: "1", gender: "M" },
+            { id: "1694400197", name: "นศท. จีรเขตต์ กูนามูน", year: "1", gender: "M" },
+            { id: "1694400198", name: "นศท. ฉัตรจักร ปัญญาเจริญ", year: "1", gender: "M" },
+            { id: "1694400200", name: "นศท. ชนันธร เอี่ยมสกุล", year: "1", gender: "M" },
+            { id: "1694400201", name: "นศท. ชยพัทธ์ ส่าเหล่วา", year: "1", gender: "M" },
+            { id: "1694400202", name: "นศท. ชยาทิต วิจารณ์ทวีกุล", year: "1", gender: "M" },
+            { id: "1694400203", name: "นศท. ชวกร ชัยศรี", year: "1", gender: "M" },
+            { id: "1694400204", name: "นศท. ชวิณวิชญ์ ธนะปาน", year: "1", gender: "M" },
+            { id: "1694400205", name: "นศท. ชัชพงษ์ ไชยา", year: "1", gender: "M" },
+            { id: "1694400206", name: "นศท. ชิษณุชา แสงวัง", year: "1", gender: "M" },
+            { id: "1694400207", name: "นศท. ณัฐชนันท์ เขื่อนคำ", year: "1", gender: "M" },
+            { id: "1694400208", name: "นศท. ติณณภพ กิติศรี", year: "1", gender: "M" },
+            { id: "1694400209", name: "นศท. ทีฆายุ ดาราเย็น", year: "1", gender: "M" },
+            { id: "1694400210", name: "นศท. ธนกฤต อ่อนตะวงศ์", year: "1", gender: "M" },
+            { id: "1694400211", name: "นศท. ธนพจน์ ธิติรัตน์วรโชค", year: "1", gender: "M" },
+            { id: "1694400212", name: "นศท. ธนพล กันทะใจ", year: "1", gender: "M" },
+            { id: "1694400213", name: "นศท. ธนภัทร อัมพรดล", year: "1", gender: "M" },
+            { id: "1694400214", name: "นศท. ธนากร ประยูรแสงรัศมี", year: "1", gender: "M" },
+            { id: "1694400215", name: "นศท. ธนากรณ์ บุญเหลือ", year: "1", gender: "M" },
+            { id: "1694400216", name: "นศท. ธันวา สุริยันสาดส่อง", year: "1", gender: "M" },
+            { id: "1694400217", name: "นศท. ธีรพล พนมไพร", year: "1", gender: "M" },
+            { id: "1694400218", name: "นศท. บุญยฤทธิ์ อินทนิเวศน์", year: "1", gender: "M" },
+            { id: "1694400219", name: "นศท. พชรดนัย เครือทอง", year: "1", gender: "M" },
+            { id: "1694400220", name: "นศท. ธนารักษ์ ปิยะโค", year: "1", gender: "M" },
+            { id: "1694400221", name: "นศท. พฤกษ์ศิลา มวยกระโทก", year: "1", gender: "M" },
+            { id: "1694400222", name: "นศท. พันธวัช กัมปนาทเสนากุล", year: "1", gender: "M" },
+            { id: "1694400223", name: "นศท. พิชญุตม์ คำจิ่ง", year: "1", gender: "M" },
+            { id: "1694400224", name: "นศท. พิพัฒน์ จุลบุตร", year: "1", gender: "M" },
+            { id: "1694400225", name: "นศท. พีรณัฐ แพรวกุล", year: "1", gender: "M" },
+            { id: "1694400226", name: "นศท. พุทธพงษ์ สกุลเสน่ห์", year: "1", gender: "M" },
+            { id: "1694400227", name: "นศท. พูนทรัพย์ คนองศรี", year: "1", gender: "M" },
+            { id: "1694400228", name: "นศท. ภาณุวิทย์ พิทยะเมที", year: "1", gender: "M" },
+            { id: "1694400229", name: "นศท. ภูสิชช์ ดวงศรี", year: "1", gender: "M" },
+            { id: "1694400230", name: "นศท. ภูสูง สุคำภิรักษ์", year: "1", gender: "M" },
+            { id: "1694400231", name: "นศท. เมธี กึกก้อง", year: "1", gender: "M" },
+            { id: "1694400232", name: "นศท. วรวัฒน์ เชียงวัดเกต", year: "1", gender: "M" },
+            { id: "1694400233", name: "นศท. วัชพล อนุรักษ์เทวัญ", year: "1", gender: "M" },
+            { id: "1694400234", name: "นศท. วิธวินท์ วารุณรัตนกร", year: "1", gender: "M" },
+            { id: "1694400235", name: "นศท. สิงหศาสตร์ สว่างศรี", year: "1", gender: "M" },
+            { id: "1694400236", name: "นศท. สิทธิศักดิ์ ศรีปัญญาเลิศ", year: "1", gender: "M" },
+            { id: "1694400237", name: "นศท. เสฎฐวุฒิ คำสังวาลย์", year: "1", gender: "M" },
+            { id: "1694400238", name: "นศท. อโณทัย จรัญไชยกุล", year: "1", gender: "M" },
+            { id: "1694400239", name: "นศท. อดิศรณ์ กันนะ", year: "1", gender: "M" },
+
+            // ปี 1 หญิง
+            { id: "0694400120", name: "นศท.หญิง เกวลิน จรรยานันทกุล", year: "1", gender: "F" },
+            { id: "0694400121", name: "นศท.หญิง ชญาพร หว่างไม", year: "1", gender: "F" },
+            { id: "0694400122", name: "นศท.หญิง ชัญญานุช พุฒิพงศ์วิโรจน์", year: "1", gender: "F" },
+            { id: "0694400123", name: "นศท.หญิง ณัชชา มุ่งเจริญ", year: "1", gender: "F" },
+            { id: "0694400124", name: "นศท.หญิง ธัญทิพย์ ประเสริฐโชติกุล", year: "1", gender: "F" },
+            { id: "0694400125", name: "นศท.หญิง ธันย์ชนก ไพรนิมิตกุล", year: "1", gender: "F" },
+            { id: "0694400126", name: "นศท.หญิง ปณาลี จันทะมา", year: "1", gender: "F" },
+            { id: "0694400127", name: "นศท.หญิง ปวีณ์นุช รุ่งเรือง", year: "1", gender: "F" },
+            { id: "0694400128", name: "นศท.หญิง ปาลิตา เกิดเหตุผล", year: "1", gender: "F" },
+            { id: "0694400129", name: "นศท.หญิง ปิยณัฐ ทองใบ", year: "1", gender: "F" },
+            { id: "0694400130", name: "นศท.หญิง พรนัชชา ไพรแสนเมือง", year: "1", gender: "F" },
+            { id: "0694400131", name: "นศท.หญิง พัณณิตา บำเพ็ญบุญ", year: "1", gender: "F" },
+            { id: "0694400132", name: "นศท.หญิง แพรพิไล อัญชัญ", year: "1", gender: "F" },
+            { id: "0694400133", name: "นศท.หญิง ฟ้าใส กิจประทีปธรรม", year: "1", gender: "F" },
+            { id: "0694400134", name: "นศท.หญิง ศรีสุดา น่า", year: "1", gender: "F" },
+            { id: "0694400135", name: "นศท.หญิง ศศิวิมล พนมไพร", year: "1", gender: "F" },
+            { id: "0694400136", name: "นศท.หญิง สายธาน ชมภู", year: "1", gender: "F" },
+            { id: "0694400137", name: "นศท.หญิง สุนันทา พิทักษ์แดนไพร", year: "1", gender: "F" },
+            { id: "0694400138", name: "นศท.หญิง อรวรรณ กันทะน้อย", year: "1", gender: "F" },
+            { id: "0694400139", name: "นศท.หญิง อริญชยา วิรัตนาภรณ์", year: "1", gender: "F" },
+
+            // ปี 2 ชาย
+            { id: "1684400056", name: "นศท. ฉัตริณ หอมเพชร", year: "2", gender: "M" },
+            { id: "1684400057", name: "นศท. ณัชนรินทร์ วงษาอินทร์", year: "2", gender: "M" },
+            { id: "1684400058", name: "นศท. ณัฐวุฒิ รัตนเพ็ญ", year: "2", gender: "M" },
+            { id: "1684400059", name: "นศท. ถิรวัสส์ ซอแอ", year: "2", gender: "M" },
+            { id: "1684400060", name: "นศท. ธนพจน์ บำรุงทรัพย์สิน", year: "2", gender: "M" },
+            { id: "1684400061", name: "นศท. ธนาเทพ นะที", year: "2", gender: "M" },
+            { id: "1684400062", name: "นศท. ธีรศานต์ เชาว์พิกุล", year: "2", gender: "M" },
+            { id: "1684400063", name: "นศท. นคร วัชณากุล", year: "2", gender: "M" },
+            { id: "1684400064", name: "นศท. นนทพันธุ์ ใส่ใจบุญรักษ์สกุล", year: "2", gender: "M" },
+            { id: "1684400065", name: "นศท. นราวิชญ์ ภิญโญ", year: "2", gender: "M" },
+            { id: "1684400066", name: "นศท. นิธิวัฒน์ ปิ่นทนะ", year: "2", gender: "M" },
+            { id: "1684400067", name: "นศท. ปวีร์ ธิตินันท์คุณากร", year: "2", gender: "M" },
+            { id: "1684400068", name: "นศท. พงศ์พิพัฒน์ ก่ำสี", year: "2", gender: "M" },
+            { id: "1684400069", name: "นศท. พงษ์พิพัฒน์ อุปสอด", year: "2", gender: "M" },
+            { id: "1684400070", name: "นศท. พิชาติ พงษ์หนองเขียว", year: "2", gender: "M" },
+            { id: "1684400071", name: "นศท. พิทยุตม์ กาญจนกุล", year: "2", gender: "M" },
+            { id: "1684400072", name: "นศท. พุทธิพงษ์ แฉ่วา", year: "2", gender: "M" },
+            { id: "1684400073", name: "นศท. ภคนันท์ เครือซุย", year: "2", gender: "M" },
+            { id: "1684400074", name: "นศท. ภาคิน กวีวัฒน์", year: "2", gender: "M" },
+            { id: "1684400075", name: "นศท. ภูตะวัน เกษสุวรรณ", year: "2", gender: "M" },
+            { id: "1684400076", name: "นศท. รัฐศรันย์ กิจขจรวัฒน", year: "2", gender: "M" },
+            { id: "1684400077", name: "นศท. วงค์ตระกูล สมศรี", year: "2", gender: "M" },
+            { id: "1684400078", name: "นศท. วรเมธ คุณาธาราวัฒน์", year: "2", gender: "M" },
+            { id: "1684400079", name: "นศท. ศิวัช จันทร์สว่าง", year: "2", gender: "M" },
+            { id: "1674402080", name: "นศท. สุภกร มณีวรรณ", year: "2", gender: "M" },
+
+            // ปี 2 หญิง
+            { id: "0684400030", name: "นศท.หญิง กานต์ธิดา ครองไชย", year: "2", gender: "F" },
+            { id: "0684400031", name: "นศท.หญิง ไขนภา วิรัชไพรพนาสัณฑ์", year: "2", gender: "F" },
+            { id: "0684400032", name: "นศท.หญิง จรรยพร พนมไพร", year: "2", gender: "F" },
+            { id: "0684400033", name: "นศท.หญิง จุฑาทิพย์ ตรีสิทธินพคุณ", year: "2", gender: "F" },
+            { id: "0684400034", name: "นศท.หญิง เชาวณี เหมกุล", year: "2", gender: "F" },
+            { id: "0684400035", name: "นศท.หญิง ซากุระ หว่างป่อ", year: "2", gender: "F" },
+            { id: "0684400036", name: "นศท.หญิง ญาณากร บุญทา", year: "2", gender: "F" },
+            { id: "0684400037", name: "นศท.หญิง ณัฐญาดา นายศ", year: "2", gender: "F" },
+            { id: "0684400038", name: "นศท.หญิง นวรัตน์ ปิติโชคภาศิน", year: "2", gender: "F" },
+            { id: "0684400039", name: "นศท.หญิง ปณาลี เสริมประชา", year: "2", gender: "F" },
+            { id: "0684400040", name: "นศท.หญิง ประกายดาว ส่ามู", year: "2", gender: "F" },
+            { id: "0684400042", name: "นศท.หญิง ปิยฉัตร พิชัยเสน", year: "2", gender: "F" },
+            { id: "0684400043", name: "นศท.หญิง ฝนวดี แสงสวยงาม", year: "2", gender: "F" },
+            { id: "0684400044", name: "นศท.หญิง พรทิพย์ ยอดไพรวัน", year: "2", gender: "F" },
+            { id: "0684400045", name: "นศท.หญิง พรวดี ถิ่นพงศ์ไพร", year: "2", gender: "F" },
+            { id: "0684400046", name: "นศท.หญิง พิชญาภัค จินา", year: "2", gender: "F" },
+            { id: "0684400047", name: "นศท.หญิง พิมพกานต์ ภาคสุวรรณ", year: "2", gender: "F" },
+            { id: "0684400048", name: "นศท.หญิง ลักษิกา พงษ์สุชานันท์", year: "2", gender: "F" },
+            { id: "0684400049", name: "นศท.หญิง วาสนา สุริยะพงศธรกุล", year: "2", gender: "F" },
+            { id: "0684400050", name: "นศท.หญิง ศุภาพิชญ์ ชื่นสุขอารีกุล", year: "2", gender: "F" },
+            { id: "0684400051", name: "นศท.หญิง สาธิรา วัชรธาดานนท์", year: "2", gender: "F" },
+            { id: "0684400052", name: "นศท.หญิง สิมิรันดร์ พยัคฆ์เดโช", year: "2", gender: "F" },
+            { id: "0684400053", name: "นศท.หญิง สุทธิดา กลีบดอกแย้ม", year: "2", gender: "F" },
+            { id: "0684400054", name: "นศท.หญิง สุพรทิพย์ แหวนะ", year: "2", gender: "F" },
+            { id: "0684400055", name: "นศท.หญิง สุรีย์พร ไพรแก้วมณี", year: "2", gender: "F" },
+            { id: "0684400056", name: "นศท.หญิง หนึ่งฤทัย มณีถิ่นสกุล", year: "2", gender: "F" },
+            { id: "0684400057", name: "นศท.หญิง อชิรญา สุขผิวพรรณ", year: "2", gender: "F" },
+            { id: "0684400058", name: "นศท.หญิง อรกัญญา เขตปราการไทย", year: "2", gender: "F" },
+
+            // ปี 3 ชาย
+            { id: "1674402044", name: "นศท. กฤต เกษมสุขมา", year: "3", gender: "M" },
+            { id: "1674402045", name: "นศท. กฤตธี กางเมืองพล", year: "3", gender: "M" },
+            { id: "1674402046", name: "นศท. กิตติศักดิ์ นรมาตร์", year: "3", gender: "M" },
+            { id: "1674402047", name: "นศท. ครองศีล จิณะเสน", year: "3", gender: "M" },
+            { id: "1674402049", name: "นศท. ชนกันต์ ธยาน์", year: "3", gender: "M" },
+            { id: "1674402050", name: "นศท. ชลันธร เอี่ยมขจร", year: "3", gender: "M" },
+            { id: "1674402051", name: "นศท. ชัยชนะ ลิ้มวรากุล", year: "3", gender: "M" },
+            { id: "1674402052", name: "นศท. โชคชัย ใหม่คามิ", year: "3", gender: "M" },
+            { id: "1671300813", name: "นศท. ฐปนรรฆ์ คัดเชียงแสน", year: "3", gender: "M" },
+            { id: "1674402054", name: "นศท. ธนพล พชรมิธิกรกุล", year: "3", gender: "M" },
+            { id: "1674402057", name: "นศท. นภัสรพี ศิริยุทธสาร", year: "3", gender: "M" },
+            { id: "1674402058", name: "นศท. นรธีร์ สนุกใจ", year: "3", gender: "M" },
+            { id: "1674402060", name: "นศท. บัญญรัต วิจิตต์", year: "3", gender: "M" },
+            { id: "1674402061", name: "นศท. ปฐมโชค วงค์โต", year: "3", gender: "M" },
+            { id: "1674402062", name: "นศท. เปรมชาติ รัตนศรี", year: "3", gender: "M" },
+            { id: "1674402063", name: "นศท. พงศกร ธิติรัตนวรโชติ", year: "3", gender: "M" },
+            { id: "1674402065", name: "นศท. พรศักดิ์ ปอเลอ", year: "3", gender: "M" },
+            { id: "1674402067", name: "นศท. ภูเบศ โพธิ์จักร", year: "3", gender: "M" },
+            { id: "1674402068", name: "นศท. รักษกร จิรกุลโชติ", year: "3", gender: "M" },
+            { id: "1674402069", name: "นศท. รัชตะ ศิริรัตน์", year: "3", gender: "M" },
+            { id: "1674402070", name: "นศท. ฤทธิชัย มิตรสาธิต", year: "3", gender: "M" },
+            { id: "1674402072", name: "นศท. วัชระพงศ์ กันล้อม", year: "3", gender: "M" },
+            { id: "1674402074", name: "นศท. วีรัช ไพรสรรเสริญ", year: "3", gender: "M" },
+            { id: "1674402076", name: "นศท. ศรัณย์ วีระวงค์", year: "3", gender: "M" },
+            { id: "1674402077", name: "นศท. ศุกลพัฒน์ เล่อกา", year: "3", gender: "M" },
+            { id: "1674402079", name: "นศท. สิรภพ ปิ่นประไมล์", year: "3", gender: "M" },
+            { id: "1674402081", name: "นศท. อดิศักดิ์ เครือซุย", year: "3", gender: "M" },
+            { id: "1674402082", name: "นศท. อภิกรม์ ดวงธรรม", year: "3", gender: "M" },
+            { id: "1674402083", name: "นศท. อริญชัย ทรัพย์ทวีเวทย์", year: "3", gender: "M" },
+            { id: "1674402084", name: "นศท. อาทิตกานต์ กรรณิการ์", year: "3", gender: "M" },
+            { id: "1674402085", name: "นศท. อำพน กันทรลักษณ์", year: "3", gender: "M" },
+            { id: "1674402086", name: "นศท. เอกรัตน์ ชัยศิลป์", year: "3", gender: "M" },
+            { id: "1674402088", name: "นศท. เอื้ออังกูร เจริญศร", year: "3", gender: "M" },
+
+            // ปี 3 หญิง
+            { id: "0674400326", name: "นศท.หญิง จิรัชญา สุนันทสิริชาติ", year: "3", gender: "F" },
+            { id: "0674400328", name: "นศท.หญิง ชุติกาญจน์ คีรีอิ่มสุวรรณ", year: "3", gender: "F" },
+            { id: "0674400329", name: "นศท.หญิง ธาวินี คีรีไพรศรี", year: "3", gender: "F" },
+            { id: "0674400330", name: "นศท.หญิง เบญญาภา ศุทธินันทวิโรจน์", year: "3", gender: "F" },
+            { id: "0674400331", name: "นศท.หญิง ปภาวาริน พละโย", year: "3", gender: "F" },
+            { id: "0674400332", name: "นศท.หญิง ปริชกา ขยันกิจ", year: "3", gender: "F" },
+            { id: "0674400333", name: "นศท.หญิง ปาริฉัตร ไพรอาชาไนย", year: "3", gender: "F" },
+            { id: "0674400334", name: "นศท.หญิง พรทิพา ฐิติบัญชา", year: "3", gender: "F" },
+            { id: "0674400335", name: "นศท.หญิง พรทิพา ไพรสุริยะ", year: "3", gender: "F" },
+            { id: "0674400337", name: "นศท.หญิง พิมพ์เพชรจันทร์ สุนันต๊ะ", year: "3", gender: "F" },
+            { id: "0674400338", name: "นศท.หญิง พิมพ์สุภา เลาลี", year: "3", gender: "F" }
+        ];
+
+        // ระบบกรองและแนะนำชื่ออัตโนมัติ (Autocomplete ตามพยัญชนะ)
+        function filterNames(val) {
+            const yearVal = document.getElementById('student-year').value;
+            const listDiv = document.getElementById('autocomplete-list');
+            listDiv.innerHTML = '';
+            
+            if (!val.trim()) {
+                listDiv.classList.add('hidden');
+                return;
+            }
+
+            // กรองตามชั้นปีที่เลือก (ถ้าเลือก) และชื่อที่ตรงกัน
+            const matches = masterStudents.filter(s => {
+                const matchYear = yearVal ? s.year === yearVal : true;
+                const matchName = s.name.includes(val);
+                return matchYear && matchName;
+            });
+
+            if (matches.length > 0) {
+                listDiv.classList.remove('hidden');
+                matches.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'p-2.5 hover:bg-emerald-50 cursor-pointer text-xs border-b border-gray-100 flex justify-between items-center';
+                    div.innerHTML = `<span>${m.name}</span> <span class="text-gray-400 font-mono text-[10px]">ปี ${m.year} (${m.id})</span>`;
+                    div.onclick = () => {
+                        document.getElementById('student-name-input').value = m.name;
+                        document.getElementById('student-year').value = m.year;
+                        document.getElementById('student-pass').value = m.id; // เติมรหัสให้อัตโนมัติเพื่อความสะดวก
+                        listDiv.classList.add('hidden');
+                    };
+                    listDiv.appendChild(div);
+                });
+            } else {
+                listDiv.classList.add('hidden');
+            }
+        }
+
+        // ตรวจสอบความถูกต้องและล็อกอิน
+        function handleLogin(e) {
+            e.preventDefault();
+            const year = document.getElementById('student-year').value;
+            const nameInput = document.getElementById('student-name-input').value.trim();
+            const passInput = document.getElementById('student-pass').value.trim();
+
+            // ค้นหานักศึกษาวิชาทหารจากฐานข้อมูล
+            const student = masterStudents.find(s => s.id === passInput && s.year === year && s.name.includes(nameInput));
+
+            if (!student) {
+                alert("ข้อมูลไม่ถูกต้อง! กรุณาตรวจสอบ ชั้นปี ชื่อ-นามสกุล และรหัสผ่าน (เลขประจำตัว นศท.) ให้ตรงกัน");
+                return;
+            }
+
+            // ตรวจสอบคำนำหน้าและเพศพื้นฐาน
+            const isFemaleName = student.name.includes("หญิง");
+            const isInputFemale = nameInput.includes("หญิง");
+            if (isFemaleName !== isInputFemale) {
+                alert("คำนำหน้าชื่อไม่ตรงกับฐานข้อมูลเพศของ นศท. กรุณาตรวจสอบอีกครั้ง");
+                return;
+            }
+
+            // ดึงข้อมูลประวัติการขาดจาก Firebase Firestore
+            db.collection("attendance").doc(student.id).get().then(doc => {
+                let records = [];
+                let absenceCount = 0;
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    records = data.records || [];
+                    absenceCount = data.absenceCount || 0;
+                }
+
+                // แสดงผลลัพธ์
+                showDashboard(student, absenceCount, records);
+            }).catch(err => {
+                console.error("Error loading data:", err);
+                showDashboard(student, 0, []);
+            });
+        }
+
+        function showDashboard(student, count, records) {
+            document.getElementById('login-card').classList.add('hidden');
+            document.getElementById('result-card').classList.remove('hidden');
+
+            document.getElementById('res-year-badge').innerText = `นักศึกษาวิชาทหาร ชั้นปีที่ ${student.year}`;
+            document.getElementById('res-name').innerText = student.name;
+            document.getElementById('res-id').innerText = student.id;
+            document.getElementById('res-absence-count').innerText = `${count} ครั้ง`;
+
+            // เงื่อนไขแจ้งเตือน: ไม่เกิน 4 ครั้งปกติ, ครบ 4 ครั้งเตือนสีส้ม, เกิน 4 ครั้งขึ้นไปเป็นสีแดง
+            const alertBox = document.getElementById('alert-box');
+            const alertIcon = document.getElementById('alert-icon');
+            const alertTitle = document.getElementById('alert-title');
+            const alertDesc = document.getElementById('alert-desc');
+
+            if (count >= 5) {
+                alertBox.className = "p-4 rounded-xl border flex items-center gap-3 bg-red-50 border-red-200 text-red-900";
+                alertIcon.className = "fa-solid fa-triangle-exclamation text-red-600 text-xl";
+                alertTitle.innerText = "สถานะ: วิกฤต / ต้องเข้าพบผู้กำกับ";
+                alertDesc.innerText = `ขาดกิจกรรม ${count} ครั้ง เกินกำหนด 4 ครั้ง กรุณารายงานตัวด่วน`;
+            } else if (count === 4) {
+                alertBox.className = "p-4 rounded-xl border flex items-center gap-3 bg-amber-50 border-amber-200 text-amber-900";
+                alertIcon.className = "fa-solid fa-triangle-exclamation text-amber-600 text-xl";
+                alertTitle.innerText = "สถานะ: เฝ้าระวัง (ครบ 4 ครั้ง)";
+                alertDesc.innerText = "คุณขาดกิจกรรมครบ 4 ครั้งแล้ว ระวังอย่าให้เกินเกณฑ์";
+            } else {
+                alertBox.className = "p-4 rounded-xl border flex items-center gap-3 bg-emerald-50 border-emerald-200 text-emerald-900";
+                alertIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xl";
+                alertTitle.innerText = "สถานะปกติ";
+                alertDesc.innerText = "การเข้าร่วมกิจกรรมยังอยู่ในเกณฑ์มาตรฐาน";
+            }
+
+            // แสดงตารางประวัติ
+            const tbody = document.getElementById('history-table-body');
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">ไม่พบประวัติการขาดกิจกรรม (เข้าร่วมครบถ้วน)</td></tr>`;
+            } else {
+                tbody.innerHTML = records.map(r => `
+                    <tr class="border-b">
+                        <td class="p-3 font-medium">${r.date}</td>
+                        <td class="p-3"><span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold">${r.session}</span></td>
+                        <td class="p-3 text-gray-600">${r.note || 'ขาดกิจกรรม'}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function logout() {
+            document.getElementById('result-card').classList.add('hidden');
+            document.getElementById('login-card').classList.remove('hidden');
+            document.getElementById('login-form').reset();
+        }
+    </script>
+</body>
+</html>
