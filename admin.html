@@ -15,7 +15,7 @@
     <div>
         <!-- HEADER -->
         <header class="bg-stone-900 text-white shadow-md py-4 px-6">
-            <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="bg-emerald-700 text-white p-2 rounded-xl">
                         <i class="fa-solid fa-shield-halved"></i>
@@ -33,7 +33,7 @@
         </header>
 
         <!-- MAIN -->
-        <main class="max-w-6xl mx-auto p-4 sm:p-6 mt-4">
+        <main class="max-w-7xl mx-auto p-4 sm:p-6 mt-4">
             
             <!-- ADMIN LOGIN BOX -->
             <div id="admin-login-box" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-stone-200 p-8">
@@ -66,43 +66,42 @@
                 <!-- ควบคุมแถบบน -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-wrap justify-between items-center gap-4">
                     <div class="flex items-center gap-3">
-                        <span class="text-sm font-bold text-stone-800">เลือกชั้นปีเพื่อจัดการ:</span>
+                        <span class="text-sm font-bold text-stone-800">เลือกชั้นปี:</span>
                         <select id="filter-year" onchange="loadAdminData()" class="text-sm p-2 border rounded-lg bg-stone-50 font-semibold">
                             <option value="1">ชั้นปีที่ 1</option>
                             <option value="2">ชั้นปีที่ 2</option>
                             <option value="3" selected>ชั้นปีที่ 3</option>
                         </select>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <div>
-                            <label class="text-xs font-semibold text-stone-600 block mb-1">วันที่เช็คชื่อ:</label>
-                            <input type="date" id="check-date" onchange="loadAdminData()" class="text-xs p-2 border rounded-lg bg-stone-50">
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-1">
+                            <input type="text" id="new-date-input" placeholder="เช่น 11/11/2569" class="text-xs p-2 border rounded-lg bg-stone-50 w-32">
+                            <button onclick="addNewDateColumn()" class="bg-stone-700 hover:bg-stone-800 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 transition">
+                                <i class="fa-solid fa-plus"></i> เพิ่มคอลัมน์วันที่
+                            </button>
                         </div>
-                        <button onclick="saveAllAttendance()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm self-end">
-                            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลทั้งหมดเข้าระบบ
+                        <button onclick="saveAllAttendance()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm">
+                            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลทั้งหมด
                         </button>
-                        <button onclick="exportToCSV()" class="bg-stone-800 hover:bg-stone-900 text-white text-xs px-4 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition self-end">
-                            <i class="fa-solid fa-file-excel"></i> Export เป็น Excel / CSV
+                        <button onclick="exportToCSV()" class="bg-stone-800 hover:bg-stone-900 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition">
+                            <i class="fa-solid fa-file-excel"></i> Export CSV
                         </button>
                     </div>
                 </div>
 
-                <!-- ตารางจัดการข้อมูลของแอดมิน -->
+                <!-- ตารางเมทริกซ์จัดการข้อมูลของแอดมิน -->
                 <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
                     <div class="p-4 border-b bg-stone-50 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-stone-700">รายชื่อ นศท. และบันทึกประวัติการขาด-ลา</h3>
-                        <span class="text-xs text-stone-500">* ช่องสถานะใส่ <code class="bg-stone-200 px-1 py-0.5 rounded">✅</code> หรือ <code class="bg-stone-200 px-1 py-0.5 rounded">/</code> (มา) หรือ **เว้นว่าง** (ไม่มา/ขาด)</span>
+                        <h3 class="text-sm font-bold text-stone-700">ตารางเช็คชื่อภาพรวม (พิมพ์ <code class="bg-stone-200 px-1 rounded">✅</code> หรือ <code class="bg-stone-200 px-1 rounded">/</code> ถ้ามา | **เว้นว่าง** ถ้าขาด)</h3>
+                        <span class="text-xs text-stone-500">ข้อมูลจะถูกบันทึกและวิเคราะห์อัตโนมัติ</span>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left">
-                            <thead class="bg-stone-100 text-stone-700 border-b">
-                                <tr>
-                                    <th class="p-3">เลขประจำตัว</th>
-                                    <th class="p-3">ชื่อ-นามสกุล</th>
-                                    <th class="p-3 text-center">สถานะการมา (พิมพ์ ✅, /, หรือเว้นว่าง)</th>
-                                </tr>
+                    <div class="overflow-x-auto max-h-[70vh]">
+                        <table class="w-full text-xs text-left border-collapse" id="matrix-table">
+                            <thead class="bg-stone-100 text-stone-700 border-b sticky top-0 z-10" id="matrix-head">
+                                <!-- สร้างหัวตารางด้วย JS -->
                             </thead>
-                            <tbody id="admin-table-body" class="divide-y divide-stone-100">
+                            <tbody id="matrix-body" class="divide-y divide-stone-100">
                                 <!-- ข้อมูลดึงจากฐานข้อมูล -->
                             </tbody>
                         </table>
@@ -324,9 +323,6 @@
             document.getElementById('admin-panel').classList.remove('hidden');
             document.getElementById('admin-user-display').classList.remove('hidden');
 
-            // ตั้งค่าวันที่เป็นวันปัจจุบันโดยอัตโนมัติเมื่อเข้าสู่ระบบครั้งแรก
-            document.getElementById('check-date').valueAsDate = new Date();
-
             loadAdminData();
         }
 
@@ -336,55 +332,99 @@
             document.getElementById('admin-login-box').classList.remove('hidden');
         }
 
-        // โหลดข้อมูลขึ้นตารางแอดมิน (ดึงค่าที่เคยบันทึกไว้ในวันนั้นๆ มาแสดง)
+        // โหลดรายชื่อวันทั้งหมดจาก Firestore (หรือใช้ค่าเริ่มต้น)
+        async function getAttendanceDates() {
+            let docRef = db.collection("config").doc("attendanceDates");
+            let doc = await docRef.get();
+            if (doc.exists && doc.data().dates) {
+                return doc.data().dates;
+            } else {
+                // ค่าเริ่มต้นถ้ายังไม่มีการสร้างคอลัมน์วันที่
+                let defaultDates = ["11/11/2569", "12/11/2569"];
+                await docRef.set({ dates: defaultDates });
+                return defaultDates;
+            }
+        }
+
+        // เพิ่มคอลัมน์วันที่ใหม่
+        async function addNewDateColumn() {
+            const newDate = document.getElementById('new-date-input').value.trim();
+            if (!newDate) {
+                alert("กรุณาระบุวันที่ (เช่น 18/11/2569)");
+                return;
+            }
+
+            let dates = await getAttendanceDates();
+            if (dates.includes(newDate)) {
+                alert("มีวันที่นี้อยู่ในตารางอยู่แล้ว!");
+                return;
+            }
+
+            dates.push(newDate);
+            await db.collection("config").doc("attendanceDates").set({ dates: dates });
+            document.getElementById('new-date-input').value = '';
+            loadAdminData();
+        }
+
+        // โหลดข้อมูลตารางเมทริกซ์
         async function loadAdminData() {
             const selectedYear = document.getElementById('filter-year').value;
-            const dateInput = document.getElementById('check-date').value;
-            const tbody = document.getElementById('admin-table-body');
+            const thead = document.getElementById('matrix-head');
+            const tbody = document.getElementById('matrix-body');
+            
+            thead.innerHTML = `<tr><th class="p-3 border-b">เลขประจำตัว</th><th class="p-3 border-b">ชื่อ-นามสกุล</th><th class="p-3 border-b text-center">รวมขาด</th></tr>`;
             tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-stone-400">กำลังโหลดข้อมูล...</td></tr>`;
 
+            let dates = await getAttendanceDates();
+
+            // สร้างหัวตาราง (เพิ่มคอลัมน์วันที่เข้าไป)
+            let headHtml = `<tr><th class="p-3 border-b w-28">เลขประจำตัว</th><th class="p-3 border-b w-48">ชื่อ-นามสกุล</th><th class="p-3 border-b text-center w-16">รวมขาด</th>`;
+            dates.forEach(date => {
+                headHtml += `<th class="p-3 border-b text-center w-24">${date}</th>`;
+            });
+            headHtml += `</tr>`;
+            thead.innerHTML = headHtml;
+
             const studentsInYear = masterStudents.filter(s => s.year === selectedYear);
-            let html = '';
+            let bodyHtml = '';
 
             for (let s of studentsInYear) {
                 let docRef = db.collection("attendance").doc(s.id);
                 let doc = await docRef.get();
-                let savedStatus = '';
+                let dailyStatus = {};
+                let absenceCount = 0;
 
-                // ถ้ามีข้อมูลในวันนั้นที่เคยบันทึกไว้ ให้ดึงมาแสดงค้างไว้ในช่อง input
-                if (doc.exists && doc.data().dailyStatus && dateInput) {
-                    savedStatus = doc.data().dailyStatus[dateInput] || '';
+                if (doc.exists) {
+                    if (doc.data().dailyStatus) dailyStatus = doc.data().dailyStatus;
+                    if (doc.data().absenceCount !== undefined) absenceCount = doc.data().absenceCount;
                 }
 
-                html += `
-                    <tr class="border-b hover:bg-stone-50">
-                        <td class="p-3 font-mono font-semibold">${s.id}</td>
-                        <td class="p-3 font-medium">${s.name}</td>
-                        <td class="p-3">
-                            <input type="text" id="status-${s.id}" value="${savedStatus}" placeholder="พิมพ์ ✅ หรือ / หรือเว้นว่าง" class="w-full sm:w-48 text-xs p-2 border rounded-lg focus:ring-2 focus:ring-emerald-700 outline-none text-center font-bold">
-                        </td>
-                    </tr>
-                `;
+                bodyHtml += `<tr class="border-b hover:bg-stone-50">
+                    <td class="p-3 font-mono font-semibold">${s.id}</td>
+                    <td class="p-3 font-medium">${s.name}</td>
+                    <td class="p-3 text-center font-bold text-red-600" id="total-${s.id}">${absenceCount} ครั้ง</td>`;
+
+                // สร้างช่อง input สำหรับแต่ละวัน
+                dates.forEach(date => {
+                    let val = dailyStatus[date] || '';
+                    bodyHtml += `<td class="p-2 text-center">
+                        <input type="text" data-student="${s.id}" data-date="${date}" value="${val}" placeholder="" class="w-16 text-xs p-1.5 border rounded focus:ring-2 focus:ring-emerald-700 outline-none text-center font-bold status-input">
+                    </td>`;
+                });
+
+                bodyHtml += `</tr>`;
             }
-            tbody.innerHTML = html;
+
+            tbody.innerHTML = bodyHtml;
         }
 
-        // ฟังก์ชันบันทึกข้อมูลทั้งหมดปุ่มเดียว (บันทึกสถานะรายวัน และคำนวณการขาด)
+        // ฟังก์ชันบันทึกข้อมูลทั้งหมดในตาราง (วิเคราะห์อัตโนมัติ)
         async function saveAllAttendance() {
-            const dateInput = document.getElementById('check-date').value;
-            if (!dateInput) {
-                alert("กรุณาเลือกวันที่เช็คชื่อก่อนบันทึก!");
-                return;
-            }
-
-            const parts = dateInput.split('-'); // [YYYY, MM, DD]
-            const thaiYear = parseInt(parts[0]) + 543;
-            const formattedDate = `${parts[2]}/${parts[1]}/${thaiYear}`;
-
             const selectedYear = document.getElementById('filter-year').value;
             const studentsInYear = masterStudents.filter(s => s.year === selectedYear);
+            let dates = await getAttendanceDates();
 
-            if (!confirm(`ยืนยันการบันทึกข้อมูลของวันที่ ${formattedDate} ชั้นปีที่ ${selectedYear}?`)) {
+            if (!confirm(`ยืนยันการบันทึกข้อมูลและวิเคราะห์ผลการเข้าแถวของชั้นปีที่ ${selectedYear}?`)) {
                 return;
             }
 
@@ -392,37 +432,29 @@
             const batch = db.batch();
 
             for (let s of studentsInYear) {
-                const inputVal = document.getElementById(`status-${s.id}`).value.trim();
-
-                const docRef = db.collection("attendance").doc(s.id);
-                const doc = await docRef.get();
-
-                let records = [];
                 let dailyStatus = {};
+                let records = [];
 
-                if (doc.exists) {
-                    if (doc.data().records) records = doc.data().records;
-                    if (doc.data().dailyStatus) dailyStatus = doc.data().dailyStatus;
-                }
+                // เก็บค่าจากช่อง input ทุกช่องของนักเรียนคนนี้
+                dates.forEach(date => {
+                    const inputEl = document.querySelector(`input.status-input[data-student="${s.id}"][data-date="${date}"]`);
+                    if (inputEl) {
+                        let val = inputEl.value.trim();
+                        dailyStatus[date] = val;
 
-                // บันทึก/อัปเดตสถานะที่พิมพ์ในวันนั้นๆ ลงใน dailyStatus (เพื่อให้ค่าค้างไว้เฉพาะวันนั้น)
-                dailyStatus[dateInput] = inputVal;
+                        // วิเคราะห์: ถ้าช่องว่าง (ไม่ใส่ ✅ หรือ /) แปลว่า "ขาด"
+                        if (val === '') {
+                            records.push({
+                                date: date,
+                                session: 'การฝึกภาคปกติ',
+                                note: 'ขาดการเข้าร่วมกิจกรรม'
+                            });
+                        }
+                    }
+                });
 
-                // จัดการประวัติการขาด (ลบรายการเก่าของวันนี้ออกก่อน แล้วเช็คใหม่)
-                records = records.filter(r => r.dateRaw !== dateInput);
-
-                if (inputVal === '') {
-                    // ถ้าช่องว่าง = ขาด ให้เพิ่มประวัติการขาดของวันนี้
-                    records.push({
-                        date: formattedDate,
-                        dateRaw: dateInput,
-                        session: 'การฝึกภาคปกติ',
-                        note: 'ขาดการเข้าร่วมกิจกรรม'
-                    });
-                }
-
-                // คำนวณจำนวนครั้งที่ขาดทั้งหมดจากประวัติการขาดจริง
                 let absenceCount = records.length;
+                let docRef = db.collection("attendance").doc(s.id);
 
                 batch.set(docRef, {
                     absenceCount: absenceCount,
@@ -434,11 +466,11 @@
             }
 
             await batch.commit();
-            alert(`บันทึกข้อมูลสำเร็จ ${successCount} รายการเรียบร้อยแล้ว!`);
-            loadAdminData(); 
+            alert(`บันทึกและวิเคราะห์ข้อมูลสำเร็จ ${successCount} รายการเรียบร้อยแล้ว!`);
+            loadAdminData();
         }
 
-        // ฟังก์ชัน Export ข้อมูลเป็น CSV (เปิดใน Excel ได้)
+        // ฟังก์ชัน Export ข้อมูลเป็น CSV
         function exportToCSV() {
             let csv = '\uFEFFรหัสประจำตัว,ชื่อ-นามสกุล,จำนวนครั้งที่ขาด\n';
             db.collection("attendance").get().then(snapshot => {
@@ -454,7 +486,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `attendance_report_${new Date().toISOString().slice(0,10)}.csv`;
+                a.download = `attendance_matrix_report_${new Date().toISOString().slice(0,10)}.csv`;
                 a.click();
             });
         }
