@@ -76,7 +76,7 @@
                     <div class="flex items-center gap-3">
                         <div>
                             <label class="text-xs font-semibold text-stone-600 block mb-1">วันที่เช็คชื่อ:</label>
-                            <input type="date" id="check-date" class="text-xs p-2 border rounded-lg bg-stone-50">
+                            <input type="date" id="check-date" onchange="loadAdminData()" class="text-xs p-2 border rounded-lg bg-stone-50">
                         </div>
                         <button onclick="saveAllAttendance()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm self-end">
                             <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลทั้งหมดเข้าระบบ
@@ -324,7 +324,7 @@
             document.getElementById('admin-panel').classList.remove('hidden');
             document.getElementById('admin-user-display').classList.remove('hidden');
 
-            // ตั้งค่าวันที่เป็นวันปัจจุบันโดยอัตโนมัติ
+            // ตั้งค่าวันที่เป็นวันปัจจุบันโดยอัตโนมัติเมื่อเข้าสู่ระบบครั้งแรก
             document.getElementById('check-date').valueAsDate = new Date();
 
             loadAdminData();
@@ -336,9 +336,10 @@
             document.getElementById('admin-login-box').classList.remove('hidden');
         }
 
-        // โหลดข้อมูลขึ้นตารางแอดมิน
+        // โหลดข้อมูลขึ้นตารางแอดมิน (ดึงค่าที่เคยบันทึกไว้ในวันนั้นๆ มาแสดง)
         async function loadAdminData() {
             const selectedYear = document.getElementById('filter-year').value;
+            const dateInput = document.getElementById('check-date').value;
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-stone-400">กำลังโหลดข้อมูล...</td></tr>`;
 
@@ -346,12 +347,21 @@
             let html = '';
 
             for (let s of studentsInYear) {
+                let docRef = db.collection("attendance").doc(s.id);
+                let doc = await docRef.get();
+                let savedStatus = '';
+
+                // ถ้ามีข้อมูลในวันนั้นที่เคยบันทึกไว้ ให้ดึงมาแสดงค้างไว้ในช่อง input
+                if (doc.exists && doc.data().dailyStatus && dateInput) {
+                    savedStatus = doc.data().dailyStatus[dateInput] || '';
+                }
+
                 html += `
                     <tr class="border-b hover:bg-stone-50">
                         <td class="p-3 font-mono font-semibold">${s.id}</td>
                         <td class="p-3 font-medium">${s.name}</td>
                         <td class="p-3">
-                            <input type="text" id="status-${s.id}" placeholder="พิมพ์ ✅ หรือ / หรือเว้นว่าง" class="w-full sm:w-48 text-xs p-2 border rounded-lg focus:ring-2 focus:ring-emerald-700 outline-none text-center font-bold">
+                            <input type="text" id="status-${s.id}" value="${savedStatus}" placeholder="พิมพ์ ✅ หรือ / หรือเว้นว่าง" class="w-full sm:w-48 text-xs p-2 border rounded-lg focus:ring-2 focus:ring-emerald-700 outline-none text-center font-bold">
                         </td>
                     </tr>
                 `;
@@ -359,7 +369,7 @@
             tbody.innerHTML = html;
         }
 
-        // ฟังก์ชันบันทึกข้อมูลทั้งหมดปุ่มเดียว
+        // ฟังก์ชันบันทึกข้อมูลทั้งหมดปุ่มเดียว (บันทึกสถานะรายวัน และคำนวณการขาด)
         async function saveAllAttendance() {
             const dateInput = document.getElementById('check-date').value;
             if (!dateInput) {
@@ -367,7 +377,6 @@
                 return;
             }
 
-            // แปลงรูปแบบวันที่เป็น พ.ศ. (เช่น 18/11/2569) เพื่อให้ตรงกับระบบแสดงผลของผู้ใช้
             const parts = dateInput.split('-'); // [YYYY, MM, DD]
             const thaiYear = parseInt(parts[0]) + 543;
             const formattedDate = `${parts[2]}/${parts[1]}/${thaiYear}`;
@@ -384,21 +393,26 @@
 
             for (let s of studentsInYear) {
                 const inputVal = document.getElementById(`status-${s.id}`).value.trim();
-                const isPresent = (inputVal === '✅' || inputVal === '/'); // ถ้าใส่เครื่องหมายคือมา ถ้าเว้นว่างคือไม่มา
 
                 const docRef = db.collection("attendance").doc(s.id);
                 const doc = await docRef.get();
 
                 let records = [];
-                if (doc.exists && doc.data().records) {
-                    records = doc.data().records;
+                let dailyStatus = {};
+
+                if (doc.exists) {
+                    if (doc.data().records) records = doc.data().records;
+                    if (doc.data().dailyStatus) dailyStatus = doc.data().dailyStatus;
                 }
 
-                // เช็คว่ามีประวัติของวันนี้อยู่แล้วหรือยัง ถ้ามีให้ลบออกก่อนอัปเดตใหม่เพื่อไม่ให้ซ้ำซ้อน
+                // บันทึก/อัปเดตสถานะที่พิมพ์ในวันนั้นๆ ลงใน dailyStatus (เพื่อให้ค่าค้างไว้เฉพาะวันนั้น)
+                dailyStatus[dateInput] = inputVal;
+
+                // จัดการประวัติการขาด (ลบรายการเก่าของวันนี้ออกก่อน แล้วเช็คใหม่)
                 records = records.filter(r => r.dateRaw !== dateInput);
 
-                if (!isPresent) {
-                    // ถ้าไม่มา (เว้นว่าง) ให้เพิ่มบันทึกการขาดของวันนี้
+                if (inputVal === '') {
+                    // ถ้าช่องว่าง = ขาด ให้เพิ่มประวัติการขาดของวันนี้
                     records.push({
                         date: formattedDate,
                         dateRaw: dateInput,
@@ -407,12 +421,13 @@
                     });
                 }
 
-                // คำนวณจำนวนครั้งที่ขาดทั้งหมดจาก records ที่ไม่มาจริง
+                // คำนวณจำนวนครั้งที่ขาดทั้งหมดจากประวัติการขาดจริง
                 let absenceCount = records.length;
 
                 batch.set(docRef, {
                     absenceCount: absenceCount,
-                    records: records
+                    records: records,
+                    dailyStatus: dailyStatus
                 }, { merge: true });
 
                 successCount++;
@@ -420,7 +435,7 @@
 
             await batch.commit();
             alert(`บันทึกข้อมูลสำเร็จ ${successCount} รายการเรียบร้อยแล้ว!`);
-            loadAdminData(); //เคลียร์ช่องกรอก
+            loadAdminData(); 
         }
 
         // ฟังก์ชัน Export ข้อมูลเป็น CSV (เปิดใน Excel ได้)
