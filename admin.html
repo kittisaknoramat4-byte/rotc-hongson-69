@@ -8,7 +8,36 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f4; }</style>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f4; }
+        /* สไตล์สำหรับล็อกคอลัมน์ชื่อและรหัสไม่ให้เลื่อนหนี */
+        .sticky-col-1 {
+            position: sticky;
+            left: 0;
+            background-color: #ffffff;
+            z-index: 20;
+        }
+        .sticky-col-2 {
+            position: sticky;
+            left: 110px; /* ความกว้างของคอลัมน์แรก */
+            background-color: #ffffff;
+            z-index: 20;
+        }
+        .sticky-col-3 {
+            position: sticky;
+            left: 280px; /* ผลรวมความกว้าง 2 คอลัมน์แรก */
+            background-color: #ffffff;
+            z-index: 20;
+        }
+        /* ป้องกันสีพื้นหลังหายเวลา Scroll */
+        tr:hover .sticky-col-1, tr:hover .sticky-col-2, tr:hover .sticky-col-3 {
+            background-color: #fafaf9;
+        }
+        thead .sticky-col-1, thead .sticky-col-2, thead .sticky-col-3 {
+            background-color: #f5f5f4 !important;
+            z-index: 30;
+        }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between text-gray-800">
 
@@ -78,7 +107,7 @@
                         <div class="flex items-center gap-1">
                             <input type="text" id="new-date-input" placeholder="เช่น 11/11/2569" class="text-xs p-2 border rounded-lg bg-stone-50 w-32">
                             <button onclick="addNewDateColumn()" class="bg-stone-700 hover:bg-stone-800 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 transition">
-                                <i class="fa-solid fa-plus"></i> เพิ่มคอลัมน์วันที่
+                                <i class="fa-solid fa-plus"></i> เพิ่มวันที่ (เฉพาะชั้นปีนี้)
                             </button>
                         </div>
                         <button onclick="saveAllAttendance()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm">
@@ -94,11 +123,11 @@
                 <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
                     <div class="p-4 border-b bg-stone-50 flex justify-between items-center">
                         <h3 class="text-sm font-bold text-stone-700">ตารางเช็คชื่อภาพรวม (พิมพ์ <code class="bg-stone-200 px-1 rounded">✅</code> หรือ <code class="bg-stone-200 px-1 rounded">/</code> ถ้ามา | **เว้นว่าง** ถ้าขาด)</h3>
-                        <span class="text-xs text-stone-500">ข้อมูลจะถูกบันทึกและวิเคราะห์อัตโนมัติ</span>
+                        <span class="text-xs text-stone-500">* คอลัมน์ชื่อจะถูกตรึงไว้เลื่อนดูวันที่ได้สะดวก</span>
                     </div>
                     <div class="overflow-x-auto max-h-[70vh]">
                         <table class="w-full text-xs text-left border-collapse" id="matrix-table">
-                            <thead class="bg-stone-100 text-stone-700 border-b sticky top-0 z-10" id="matrix-head">
+                            <thead class="bg-stone-100 text-stone-700 border-b sticky top-0 z-30" id="matrix-head">
                                 <!-- สร้างหัวตารางด้วย JS -->
                             </thead>
                             <tbody id="matrix-body" class="divide-y divide-stone-100">
@@ -332,36 +361,54 @@
             document.getElementById('admin-login-box').classList.remove('hidden');
         }
 
-        // โหลดรายชื่อวันทั้งหมดจาก Firestore (หรือใช้ค่าเริ่มต้น)
-        async function getAttendanceDates() {
-            let docRef = db.collection("config").doc("attendanceDates");
+        // แปลงวันที่รูปแบบ DD/MM/YYYY (พ.ศ.) เป็น Date Object เพื่อใช้เปรียบเทียบความเก่า-ใหม่
+        function parseThaiDate(dateStr) {
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return new Date(0);
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const thaiYear = parseInt(parts[2], 10);
+            const gregorianYear = thaiYear - 543;
+            return new Date(gregorianYear, month, day);
+        }
+
+        // โหลดรายชื่อวันของชั้นปีที่เลือกแยกอิสระจาก Firebase
+        async function getAttendanceDates(year) {
+            let docRef = db.collection("config").doc(`attendanceDates_year_${year}`);
             let doc = await docRef.get();
             if (doc.exists && doc.data().dates) {
-                return doc.data().dates;
+                let dates = doc.data().dates;
+                // จัดเรียงวันที่จากเก่าไปใหม่เสมอ
+                dates.sort((a, b) => parseThaiDate(a) - parseThaiDate(b));
+                return dates;
             } else {
-                // ค่าเริ่มต้นถ้ายังไม่มีการสร้างคอลัมน์วันที่
                 let defaultDates = ["11/11/2569", "12/11/2569"];
                 await docRef.set({ dates: defaultDates });
                 return defaultDates;
             }
         }
 
-        // เพิ่มคอลัมน์วันที่ใหม่
+        // เพิ่มคอลัมน์วันที่ใหม่เฉพาะชั้นปีที่เลือก (ระบบคำนวณและดันไปหน้าสุดถ้าเป็นวันเก่า)
         async function addNewDateColumn() {
             const newDate = document.getElementById('new-date-input').value.trim();
             if (!newDate) {
-                alert("กรุณาระบุวันที่ (เช่น 18/11/2569)");
+                alert("กรุณาระบุวันที่ (เช่น 10/11/2569)");
                 return;
             }
 
-            let dates = await getAttendanceDates();
+            const selectedYear = document.getElementById('filter-year').value;
+            let dates = await getAttendanceDates(selectedYear);
+
             if (dates.includes(newDate)) {
-                alert("มีวันที่นี้อยู่ในตารางอยู่แล้ว!");
+                alert("มีวันที่นี้อยู่ในตารางของชั้นปีนี้แล้ว!");
                 return;
             }
 
             dates.push(newDate);
-            await db.collection("config").doc("attendanceDates").set({ dates: dates });
+            // จัดเรียงวันที่ใหม่โดยอัตโนมัติ (วันเก่าจะถูกดันมาอยู่ด้านหน้าสุด)
+            dates.sort((a, b) => parseThaiDate(a) - parseThaiDate(b));
+
+            await db.collection("config").doc(`attendanceDates_year_${selectedYear}`).set({ dates: dates });
             document.getElementById('new-date-input').value = '';
             loadAdminData();
         }
@@ -372,13 +419,17 @@
             const thead = document.getElementById('matrix-head');
             const tbody = document.getElementById('matrix-body');
             
-            thead.innerHTML = `<tr><th class="p-3 border-b">เลขประจำตัว</th><th class="p-3 border-b">ชื่อ-นามสกุล</th><th class="p-3 border-b text-center">รวมขาด</th></tr>`;
+            thead.innerHTML = `<tr><th class="p-3 border-b sticky-col-1">เลขประจำตัว</th><th class="p-3 border-b sticky-col-2">ชื่อ-นามสกุล</th><th class="p-3 border-b text-center sticky-col-3">รวมขาด</th></tr>`;
             tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-stone-400">กำลังโหลดข้อมูล...</td></tr>`;
 
-            let dates = await getAttendanceDates();
+            let dates = await getAttendanceDates(selectedYear);
 
-            // สร้างหัวตาราง (เพิ่มคอลัมน์วันที่เข้าไป)
-            let headHtml = `<tr><th class="p-3 border-b w-28">เลขประจำตัว</th><th class="p-3 border-b w-48">ชื่อ-นามสกุล</th><th class="p-3 border-b text-center w-16">รวมขาด</th>`;
+            // สร้างหัวตาราง (พร้อมคอลัมน์ตรึงซ้าย)
+            let headHtml = `<tr>
+                <th class="p-3 border-b sticky-col-1 w-28">เลขประจำตัว</th>
+                <th class="p-3 border-b sticky-col-2 w-48">ชื่อ-นามสกุล</th>
+                <th class="p-3 border-b text-center sticky-col-3 w-16">รวมขาด</th>`;
+            
             dates.forEach(date => {
                 headHtml += `<th class="p-3 border-b text-center w-24">${date}</th>`;
             });
@@ -400,9 +451,9 @@
                 }
 
                 bodyHtml += `<tr class="border-b hover:bg-stone-50">
-                    <td class="p-3 font-mono font-semibold">${s.id}</td>
-                    <td class="p-3 font-medium">${s.name}</td>
-                    <td class="p-3 text-center font-bold text-red-600" id="total-${s.id}">${absenceCount} ครั้ง</td>`;
+                    <td class="p-3 font-mono font-semibold sticky-col-1">${s.id}</td>
+                    <td class="p-3 font-medium sticky-col-2">${s.name}</td>
+                    <td class="p-3 text-center font-bold text-red-600 sticky-col-3" id="total-${s.id}">${absenceCount} ครั้ง</td>`;
 
                 // สร้างช่อง input สำหรับแต่ละวัน
                 dates.forEach(date => {
@@ -418,11 +469,11 @@
             tbody.innerHTML = bodyHtml;
         }
 
-        // ฟังก์ชันบันทึกข้อมูลทั้งหมดในตาราง (วิเคราะห์อัตโนมัติ)
+        // ฟังก์ชันบันทึกข้อมูลทั้งหมดในตาราง (วิเคราะห์อัตโนมัติเฉพาะชั้นปีนั้นๆ)
         async function saveAllAttendance() {
             const selectedYear = document.getElementById('filter-year').value;
             const studentsInYear = masterStudents.filter(s => s.year === selectedYear);
-            let dates = await getAttendanceDates();
+            let dates = await getAttendanceDates(selectedYear);
 
             if (!confirm(`ยืนยันการบันทึกข้อมูลและวิเคราะห์ผลการเข้าแถวของชั้นปีที่ ${selectedYear}?`)) {
                 return;
@@ -432,17 +483,28 @@
             const batch = db.batch();
 
             for (let s of studentsInYear) {
+                let docRef = db.collection("attendance").doc(s.id);
+                let doc = await docRef.get();
+                
                 let dailyStatus = {};
-                let records = [];
+                let existingRecords = [];
 
-                // เก็บค่าจากช่อง input ทุกช่องของนักเรียนคนนี้
+                if (doc.exists) {
+                    if (doc.data().dailyStatus) dailyStatus = doc.data().dailyStatus;
+                    if (doc.data().records) existingRecords = doc.data().records;
+                }
+
+                // ลบประวัติการขาดเฉพาะของวันที่อยู่ในตารางชั้นปีนี้ออกก่อน เพื่อคำนวณใหม่ให้แม่นยำ
+                let records = existingRecords.filter(r => !dates.includes(r.date));
+
+                // เก็บค่าจากช่อง input ทุกช่องของนักเรียนคนนี้ในชั้นปีนี้
                 dates.forEach(date => {
                     const inputEl = document.querySelector(`input.status-input[data-student="${s.id}"][data-date="${date}"]`);
                     if (inputEl) {
                         let val = inputEl.value.trim();
                         dailyStatus[date] = val;
 
-                        // วิเคราะห์: ถ้าช่องว่าง (ไม่ใส่ ✅ หรือ /) แปลว่า "ขาด"
+                        // วิเคราะห์: ถ้าช่องว่าง (ไม่ใส่ ✅ หรือ /) แปลว่า "ขาด" ในวันนั้น
                         if (val === '') {
                             records.push({
                                 date: date,
@@ -454,7 +516,6 @@
                 });
 
                 let absenceCount = records.length;
-                let docRef = db.collection("attendance").doc(s.id);
 
                 batch.set(docRef, {
                     absenceCount: absenceCount,
@@ -466,7 +527,7 @@
             }
 
             await batch.commit();
-            alert(`บันทึกและวิเคราะห์ข้อมูลสำเร็จ ${successCount} รายการเรียบร้อยแล้ว!`);
+            alert(`บันทึกและวิเคราะห์ข้อมูลชั้นปีที่ ${selectedYear} สำเร็จเรียบร้อยแล้ว!`);
             loadAdminData();
         }
 
