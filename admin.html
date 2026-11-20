@@ -10,30 +10,66 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f4; }
-        /* สไตล์สำหรับล็อกคอลัมน์ชื่อและรหัสไม่ให้เลื่อนหนี */
+
+        /* สไตล์สำหรับล็อกคอลัมน์รหัส ชื่อ และรวมขาด ให้ติดกันฝั่งซ้ายทั้งบนมือถือและจอใหญ่ */
         .sticky-col-1 {
             position: sticky;
             left: 0;
+            width: 92px;
+            min-width: 92px;
+            max-width: 92px;
             background-color: #ffffff;
             z-index: 20;
         }
         .sticky-col-2 {
             position: sticky;
-            left: 110px; /* ความกว้างของคอลัมน์แรก */
+            left: 92px;
+            width: 148px;
+            min-width: 148px;
+            max-width: 148px;
             background-color: #ffffff;
             z-index: 20;
         }
         .sticky-col-3 {
             position: sticky;
-            left: 280px; /* ผลรวมความกว้าง 2 คอลัมน์แรก */
+            left: 240px;
+            width: 64px;
+            min-width: 64px;
+            max-width: 64px;
             background-color: #ffffff;
             z-index: 20;
+            box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.15);
         }
-        /* ป้องกันสีพื้นหลังหายเวลา Scroll */
-        tr:hover .sticky-col-1, tr:hover .sticky-col-2, tr:hover .sticky-col-3 {
+
+        @media (min-width: 640px) {
+            .sticky-col-1 {
+                width: 112px;
+                min-width: 112px;
+                max-width: 112px;
+            }
+            .sticky-col-2 {
+                left: 112px;
+                width: 208px;
+                min-width: 208px;
+                max-width: 208px;
+            }
+            .sticky-col-3 {
+                left: 320px;
+                width: 76px;
+                min-width: 76px;
+                max-width: 76px;
+            }
+        }
+
+        /* ป้องกันสีพื้นหลังโปร่งใสเวลา Scroll */
+        tr:hover .sticky-col-1,
+        tr:hover .sticky-col-2,
+        tr:hover .sticky-col-3 {
             background-color: #fafaf9;
         }
-        thead .sticky-col-1, thead .sticky-col-2, thead .sticky-col-3 {
+        thead .sticky-col-1,
+        thead .sticky-col-2,
+        thead .sticky-col-3 {
             background-color: #f5f5f4 !important;
             z-index: 30;
         }
@@ -43,41 +79,48 @@
 
     <div>
         <!-- HEADER -->
-        <header class="bg-stone-900 text-white shadow-md py-4 px-6">
-            <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-emerald-700 text-white p-2 rounded-xl">
+        <header class="bg-stone-900 text-white shadow-md py-4 px-4 sm:px-6">
+            <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="bg-emerald-700 text-white p-2 rounded-xl shrink-0">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
-                    <div>
-                        <h1 class="text-base font-bold tracking-wide">ระบบจัดการหลังบ้าน (Command Admin)</h1>
-                        <p class="text-xs text-stone-400">กองพันนักศึกษาวิชาทหาร โรงเรียนห้องสอนศึกษา</p>
+                    <div class="min-w-0">
+                        <h1 class="text-sm sm:text-base font-bold tracking-wide truncate">ระบบจัดการหลังบ้าน (Command Admin)</h1>
+                        <p class="text-[11px] sm:text-xs text-stone-400 truncate">กองพันนักศึกษาวิชาทหาร โรงเรียนห้องสอนศึกษา</p>
                     </div>
                 </div>
-                <div id="admin-user-display" class="hidden flex items-center gap-3">
-                    <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i> เข้าสู่ระบบแล้ว</span>
+                <div id="admin-user-display" class="hidden flex items-center gap-2 sm:gap-3 shrink-0">
+                    <span class="text-xs text-emerald-400 font-semibold hidden sm:inline">
+                        <i class="fa-solid fa-circle-check"></i> <span id="active-admin-name">เข้าสู่ระบบแล้ว</span>
+                    </span>
                     <button onclick="adminLogout()" class="bg-stone-800 hover:bg-red-900 text-xs px-3 py-1.5 rounded-lg transition">ออกจากระบบ</button>
                 </div>
             </div>
         </header>
 
         <!-- MAIN -->
-        <main class="max-w-7xl mx-auto p-4 sm:p-6 mt-4">
+        <main class="max-w-7xl mx-auto p-3 sm:p-6 mt-3 sm:mt-4">
             
             <!-- ADMIN LOGIN BOX -->
-            <div id="admin-login-box" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-stone-200 p-8">
+            <div id="admin-login-box" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-stone-200 p-6 sm:p-8">
                 <div class="text-center mb-6">
                     <div class="w-12 h-12 bg-stone-100 text-stone-800 rounded-full flex items-center justify-center mx-auto mb-3 text-lg">
                         <i class="fa-solid fa-lock"></i>
                     </div>
-                    <h2 class="text-lg font-bold text-stone-900">เข้าสู่ระบบผู้ดูแล / คอมแมน</h2>
-                    <p class="text-xs text-stone-500 mt-1">เฉพาะผู้บังคับบัญชาและแอดมินที่ได้รับอนุญาต</p>
+                    <h2 class="text-lg font-bold text-stone-900">เข้าสู่ระบบผู้ดูแล / ครูผู้กำกับ / คอมแมน</h2>
+                    <p class="text-xs text-stone-500 mt-1">เฉพาะผู้บังคับบัญชา ครูผู้กำกับ และแอดมินที่ได้รับอนุญาต</p>
                 </div>
 
                 <form onsubmit="adminLogin(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-1">ชื่อคอมแมน / แอดมิน</label>
-                        <input type="text" id="admin-name" placeholder="ระบุชื่อของคุณ" required class="w-full text-sm p-3 border rounded-xl focus:ring-2 focus:ring-emerald-700 outline-none">
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">ชื่อผู้ใช้งาน / ครูผู้กำกับ / คอมแมน</label>
+                        <input type="text" id="admin-name" list="authorized-staff-list" placeholder="พิมพ์หรือเลือกชื่อผู้ใช้งาน" required class="w-full text-sm p-3 border rounded-xl focus:ring-2 focus:ring-emerald-700 outline-none">
+                        <datalist id="authorized-staff-list">
+                            <option value="นาย อภิสิทธิ์ ทองรุ่ง">
+                            <option value="นาย อภิวัฒน์ ทองรุ่ง">
+                        </datalist>
+                        <p class="text-[11px] text-stone-400 mt-1">รายชื่อครูผู้กำกับ: นาย อภิสิทธิ์ ทองรุ่ง, นาย อภิวัฒน์ ทองรุ่ง</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-stone-700 mb-1">รหัสผ่านแอดมิน</label>
@@ -90,30 +133,31 @@
             </div>
 
             <!-- ADMIN DASHBOARD PANEL (ซ่อนไว้ก่อน) -->
-            <div id="admin-panel" class="hidden space-y-6">
+            <div id="admin-panel" class="hidden space-y-5">
                 
                 <!-- ควบคุมแถบบน -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-wrap justify-between items-center gap-4">
-                    <div class="flex items-center gap-3">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-wrap justify-between items-center gap-3">
+                    <div class="flex items-center gap-2 sm:gap-3">
                         <span class="text-sm font-bold text-stone-800">เลือกชั้นปี:</span>
                         <select id="filter-year" onchange="loadAdminData()" class="text-sm p-2 border rounded-lg bg-stone-50 font-semibold">
                             <option value="1">ชั้นปีที่ 1</option>
                             <option value="2">ชั้นปีที่ 2</option>
                             <option value="3" selected>ชั้นปีที่ 3</option>
                         </select>
+                        <span class="text-xs text-stone-500 sm:hidden font-medium" id="mobile-admin-name"></span>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="flex items-center gap-1">
-                            <input type="text" id="new-date-input" placeholder="เช่น 11/11/2569" class="text-xs p-2 border rounded-lg bg-stone-50 w-32">
-                            <button onclick="addNewDateColumn()" class="bg-stone-700 hover:bg-stone-800 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 transition">
-                                <i class="fa-solid fa-plus"></i> เพิ่มวันที่ (เฉพาะชั้นปีนี้)
+                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <div class="flex items-center gap-1 flex-1 sm:flex-initial">
+                            <input type="text" id="new-date-input" placeholder="เช่น 11/11/69(เช้า)" class="text-xs p-2 border rounded-lg bg-stone-50 flex-1 sm:w-36">
+                            <button type="button" onclick="addNewDateColumn()" class="bg-stone-700 hover:bg-stone-800 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 transition shrink-0">
+                                <i class="fa-solid fa-plus"></i> เพิ่มวันที่
                             </button>
                         </div>
-                        <button onclick="saveAllAttendance()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm">
+                        <button type="button" onclick="saveAllAttendance()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm shrink-0">
                             <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลทั้งหมด
                         </button>
-                        <button onclick="exportToCSV()" class="bg-stone-800 hover:bg-stone-900 text-white text-xs px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition">
+                        <button type="button" onclick="exportToCSV()" class="bg-stone-800 hover:bg-stone-900 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1 transition shrink-0">
                             <i class="fa-solid fa-file-excel"></i> Export CSV
                         </button>
                     </div>
@@ -121,12 +165,16 @@
 
                 <!-- ตารางเมทริกซ์จัดการข้อมูลของแอดมิน -->
                 <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
-                    <div class="p-4 border-b bg-stone-50 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-stone-700">ตารางเช็คชื่อภาพรวม (พิมพ์ <code class="bg-stone-200 px-1 rounded">✅</code> หรือ <code class="bg-stone-200 px-1 rounded">/</code> ถ้ามา | **เว้นว่าง** ถ้าขาด)</h3>
-                        <span class="text-xs text-stone-500">* คอลัมน์ชื่อจะถูกตรึงไว้เลื่อนดูวันที่ได้สะดวก</span>
+                    <div class="p-3 sm:p-4 border-b bg-stone-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                        <h3 class="text-xs sm:text-sm font-bold text-stone-700 leading-relaxed">
+                            พิมพ์ <code class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">✅</code> หรือ <code class="bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">/</code> ถ้ามา
+                            | พิมพ์ <code class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">ลา</code> ถ้าลา (ไม่นับว่าขาด)
+                            | <strong>เว้นว่าง</strong> ถ้าขาด
+                        </h3>
+                        <span class="text-[11px] text-stone-500">* คอลัมน์รหัส ชื่อ และรวมขาด ตรึงอยู่กับที่เมื่อเลื่อนแนวนอน</span>
                     </div>
                     <div class="overflow-x-auto max-h-[70vh]">
-                        <table class="w-full text-xs text-left border-collapse" id="matrix-table">
+                        <table class="text-xs text-left border-collapse w-max min-w-full" id="matrix-table">
                             <thead class="bg-stone-100 text-stone-700 border-b sticky top-0 z-30" id="matrix-head">
                                 <!-- สร้างหัวตารางด้วย JS -->
                             </thead>
@@ -165,6 +213,15 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        const authorizedInstructors = [
+            "นาย อภิสิทธิ์ ทองรุ่ง",
+            "นาย อภิวัฒน์ ทองรุ่ง"
+        ];
+
+        let currentAdminName = "";
+        // เก็บค่าที่พิมพ์ค้างไว้ในหน้าจอชั่วคราวต่อชั้นปี เพื่อไม่ให้หายตอนเพิ่มคอลัมน์วันที่
+        let pendingDrafts = {};
+
         // ฐานข้อมูล นศท. ทั้งหมด
         const masterStudents = [
             // ปี 1
@@ -184,7 +241,7 @@
             { id: "1694400205", name: "นศท. ชัชพงษ์ ไชยา", year: "1" },
             { id: "1694400206", name: "นศท. ชิษณุชา แสงวัง", year: "1" },
             { id: "1694400207", name: "นศท. ณัฐชนันท์ เขื่อนคำ", year: "1" },
-            { id: "1694400208", name: "นศท. ติณณภพ กิติศรี", year: "1" },
+            { id: "1694400208", name: "นศท. ดิณณภพ กิติศรี", year: "1" },
             { id: "1694400209", name: "นศท. ทีฆายุ ดาราเย็น", year: "1" },
             { id: "1694400210", name: "นศท. ธนกฤต อ่อนตะวงศ์", year: "1" },
             { id: "1694400211", name: "นศท. ธนพจน์ ธิติรัตน์วรโชค", year: "1" },
@@ -341,12 +398,17 @@
 
         function adminLogin(e) {
             e.preventDefault();
+            const nameVal = document.getElementById('admin-name').value.trim();
             const pass = document.getElementById('admin-password').value.trim();
 
             if (pass !== "commandhs01") {
                 alert("รหัสผ่านผู้ดูแลระบบ (Admin) ไม่ถูกต้อง!");
                 return;
             }
+
+            currentAdminName = nameVal || "ผู้ดูแลระบบ";
+            document.getElementById('active-admin-name').innerText = currentAdminName;
+            document.getElementById('mobile-admin-name').innerText = `(${currentAdminName})`;
 
             document.getElementById('admin-login-box').classList.add('hidden');
             document.getElementById('admin-panel').classList.remove('hidden');
@@ -356,47 +418,107 @@
         }
 
         function adminLogout() {
+            currentAdminName = "";
+            pendingDrafts = {};
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('admin-user-display').classList.add('hidden');
             document.getElementById('admin-login-box').classList.remove('hidden');
         }
 
-        // แปลงวันที่รูปแบบ DD/MM/YYYY (พ.ศ.) เป็น Date Object เพื่อใช้เปรียบเทียบความเก่า-ใหม่
-        function parseThaiDate(dateStr) {
-            const parts = dateStr.split('/');
-            if (parts.length !== 3) return new Date(0);
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1;
-            const thaiYear = parseInt(parts[2], 10);
-            const gregorianYear = thaiYear - 543;
-            return new Date(gregorianYear, month, day);
+        // แยกวันที่และช่วงเวลา เช่น "11/11/69(เช้า)" หรือ "18/11/2569(เย็น)" เพื่อจัดเรียงลำดับ
+        function getDateSortKey(dateStr) {
+            const str = String(dateStr || '').trim();
+            const match = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+            if (!match) {
+                return { timestamp: Number.MAX_SAFE_INTEGER, sessionOrder: 99, raw: str };
+            }
+
+            const day = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1;
+            const rawYear = parseInt(match[3], 10);
+            const beYear = rawYear < 100 ? 2500 + rawYear : rawYear;
+            const ceYear = beYear >= 2400 ? beYear - 543 : beYear;
+            const timestamp = new Date(ceYear, month, day).getTime();
+
+            let sessionOrder = 5;
+            if (str.includes('เช้า')) sessionOrder = 1;
+            else if (str.includes('กลางวัน') || str.includes('เที่ยง')) sessionOrder = 2;
+            else if (str.includes('บ่าย')) sessionOrder = 3;
+            else if (str.includes('เย็น')) sessionOrder = 4;
+
+            return { timestamp, sessionOrder, raw: str };
+        }
+
+        function sortAttendanceDates(dates) {
+            return [...dates].sort((a, b) => {
+                const ka = getDateSortKey(a);
+                const kb = getDateSortKey(b);
+                if (ka.timestamp !== kb.timestamp) return ka.timestamp - kb.timestamp;
+                if (ka.sessionOrder !== kb.sessionOrder) return ka.sessionOrder - kb.sessionOrder;
+                return ka.raw.localeCompare(kb.raw, 'th');
+            });
+        }
+
+        // เก็บข้อมูลที่กำลังพิมพ์ค้างอยู่บนหน้าจอของชั้นปีปัจจุบัน
+        function captureCurrentDrafts(year) {
+            const yearDrafts = {};
+            document.querySelectorAll('input.status-input').forEach(inputEl => {
+                const sid = inputEl.dataset.student;
+                const dt = inputEl.dataset.date;
+                if (!yearDrafts[sid]) yearDrafts[sid] = {};
+                yearDrafts[sid][dt] = inputEl.value.trim();
+            });
+            pendingDrafts[year] = yearDrafts;
+        }
+
+        // จัดรูปแบบค่าสถานะให้เป็นมาตรฐาน ('✅', '/', 'ลา', หรือ '')
+        function normalizeStatusValue(rawVal) {
+            const v = String(rawVal || '').trim();
+            if (!v) return '';
+            if (v === 'ลา' || v.toLowerCase() === 'leave') return 'ลา';
+            if (v === '✅' || v === '/' || v.toLowerCase() === 'มา') return v;
+            return v;
+        }
+
+        function classifyStatus(val) {
+            const norm = normalizeStatusValue(val);
+            if (!norm) return 'absent';
+            if (norm === 'ลา') return 'leave';
+            if (norm === '✅' || norm === '/') return 'present';
+            return 'present';
+        }
+
+        function getInputStyleByStatus(val) {
+            const type = classifyStatus(val);
+            if (type === 'present') return 'bg-emerald-50 text-emerald-800 border-emerald-300';
+            if (type === 'leave') return 'bg-amber-50 text-amber-800 border-amber-300';
+            return 'bg-white text-gray-800 border-gray-300';
         }
 
         // โหลดรายชื่อวันของชั้นปีที่เลือกแยกอิสระจาก Firebase
         async function getAttendanceDates(year) {
             let docRef = db.collection("config").doc(`attendanceDates_year_${year}`);
             let doc = await docRef.get();
-            if (doc.exists && doc.data().dates) {
-                let dates = doc.data().dates;
-                // จัดเรียงวันที่จากเก่าไปใหม่เสมอ
-                dates.sort((a, b) => parseThaiDate(a) - parseThaiDate(b));
-                return dates;
+            if (doc.exists && Array.isArray(doc.data().dates)) {
+                return sortAttendanceDates(doc.data().dates);
             } else {
-                let defaultDates = ["11/11/2569", "12/11/2569"];
+                let defaultDates = sortAttendanceDates(["11/11/2569", "12/11/2569"]);
                 await docRef.set({ dates: defaultDates });
                 return defaultDates;
             }
         }
 
-        // เพิ่มคอลัมน์วันที่ใหม่เฉพาะชั้นปีที่เลือก (ระบบคำนวณและดันไปหน้าสุดถ้าเป็นวันเก่า)
+        // เพิ่มคอลัมน์วันที่ใหม่เฉพาะชั้นปีที่เลือก โดยรักษาข้อมูลที่พิมพ์ค้างไว้ไม่ให้หาย
         async function addNewDateColumn() {
             const newDate = document.getElementById('new-date-input').value.trim();
             if (!newDate) {
-                alert("กรุณาระบุวันที่ (เช่น 10/11/2569)");
+                alert("กรุณาระบุวันที่ (เช่น 11/11/69 หรือ 11/11/69(เช้า))");
                 return;
             }
 
             const selectedYear = document.getElementById('filter-year').value;
+            captureCurrentDrafts(selectedYear);
+
             let dates = await getAttendanceDates(selectedYear);
 
             if (dates.includes(newDate)) {
@@ -405,12 +527,11 @@
             }
 
             dates.push(newDate);
-            // จัดเรียงวันที่ใหม่โดยอัตโนมัติ (วันเก่าจะถูกดันมาอยู่ด้านหน้าสุด)
-            dates.sort((a, b) => parseThaiDate(a) - parseThaiDate(b));
+            dates = sortAttendanceDates(dates);
 
             await db.collection("config").doc(`attendanceDates_year_${selectedYear}`).set({ dates: dates });
             document.getElementById('new-date-input').value = '';
-            loadAdminData();
+            await loadAdminData();
         }
 
         // โหลดข้อมูลตารางเมทริกซ์
@@ -423,15 +544,16 @@
             tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-stone-400">กำลังโหลดข้อมูล...</td></tr>`;
 
             let dates = await getAttendanceDates(selectedYear);
+            const yearDrafts = pendingDrafts[selectedYear] || {};
 
             // สร้างหัวตาราง (พร้อมคอลัมน์ตรึงซ้าย)
             let headHtml = `<tr>
-                <th class="p-3 border-b sticky-col-1 w-28">เลขประจำตัว</th>
-                <th class="p-3 border-b sticky-col-2 w-48">ชื่อ-นามสกุล</th>
-                <th class="p-3 border-b text-center sticky-col-3 w-16">รวมขาด</th>`;
+                <th class="p-2.5 sm:p-3 border-b sticky-col-1">เลขประจำตัว</th>
+                <th class="p-2.5 sm:p-3 border-b sticky-col-2">ชื่อ-นามสกุล</th>
+                <th class="p-2.5 sm:p-3 border-b text-center sticky-col-3">รวมขาด</th>`;
             
             dates.forEach(date => {
-                headHtml += `<th class="p-3 border-b text-center w-24">${date}</th>`;
+                headHtml += `<th class="p-2.5 sm:p-3 border-b text-center min-w-[96px] sm:min-w-[112px] whitespace-nowrap">${date}</th>`;
             });
             headHtml += `</tr>`;
             thead.innerHTML = headHtml;
@@ -451,15 +573,19 @@
                 }
 
                 bodyHtml += `<tr class="border-b hover:bg-stone-50">
-                    <td class="p-3 font-mono font-semibold sticky-col-1">${s.id}</td>
-                    <td class="p-3 font-medium sticky-col-2">${s.name}</td>
-                    <td class="p-3 text-center font-bold text-red-600 sticky-col-3" id="total-${s.id}">${absenceCount} ครั้ง</td>`;
+                    <td class="p-2.5 sm:p-3 font-mono font-semibold sticky-col-1">${s.id}</td>
+                    <td class="p-2.5 sm:p-3 font-medium sticky-col-2 truncate sm:whitespace-normal" title="${s.name}">${s.name}</td>
+                    <td class="p-2.5 sm:p-3 text-center font-bold text-red-600 sticky-col-3" id="total-${s.id}">${absenceCount} ครั้ง</td>`;
 
-                // สร้างช่อง input สำหรับแต่ละวัน
                 dates.forEach(date => {
-                    let val = dailyStatus[date] || '';
-                    bodyHtml += `<td class="p-2 text-center">
-                        <input type="text" data-student="${s.id}" data-date="${date}" value="${val}" placeholder="" class="w-16 text-xs p-1.5 border rounded focus:ring-2 focus:ring-emerald-700 outline-none text-center font-bold status-input">
+                    const hasDraft = yearDrafts[s.id] && Object.prototype.hasOwnProperty.call(yearDrafts[s.id], date);
+                    let val = hasDraft ? yearDrafts[s.id][date] : (dailyStatus[date] || '');
+                    const styleClass = getInputStyleByStatus(val);
+
+                    bodyHtml += `<td class="p-1.5 sm:p-2 text-center">
+                        <input type="text" data-student="${s.id}" data-date="${date}" value="${val}" placeholder=""
+                            oninput="onCellInput(this)"
+                            class="w-16 sm:w-20 text-xs p-1.5 border rounded focus:ring-2 focus:ring-emerald-700 outline-none text-center font-bold status-input ${styleClass}">
                     </td>`;
                 });
 
@@ -467,6 +593,11 @@
             }
 
             tbody.innerHTML = bodyHtml;
+        }
+
+        function onCellInput(el) {
+            const baseClasses = "w-16 sm:w-20 text-xs p-1.5 border rounded focus:ring-2 focus:ring-emerald-700 outline-none text-center font-bold status-input";
+            el.className = `${baseClasses} ${getInputStyleByStatus(el.value)}`;
         }
 
         // ฟังก์ชันบันทึกข้อมูลทั้งหมดในตาราง (วิเคราะห์อัตโนมัติเฉพาะชั้นปีนั้นๆ)
@@ -479,8 +610,8 @@
                 return;
             }
 
-            let successCount = 0;
             const batch = db.batch();
+            const approverNote = currentAdminName ? `ลาตามดุลพินิจของ ${currentAdminName}` : 'ลาตามดุลพินิจของผู้กำกับ';
 
             for (let s of studentsInYear) {
                 let docRef = db.collection("attendance").doc(s.id);
@@ -490,56 +621,78 @@
                 let existingRecords = [];
 
                 if (doc.exists) {
-                    if (doc.data().dailyStatus) dailyStatus = doc.data().dailyStatus;
-                    if (doc.data().records) existingRecords = doc.data().records;
+                    if (doc.data().dailyStatus) dailyStatus = { ...doc.data().dailyStatus };
+                    if (Array.isArray(doc.data().records)) existingRecords = [...doc.data().records];
                 }
 
-                // ลบประวัติการขาดเฉพาะของวันที่อยู่ในตารางชั้นปีนี้ออกก่อน เพื่อคำนวณใหม่ให้แม่นยำ
+                // ลบประวัติเฉพาะของวันที่อยู่ในตารางชั้นปีนี้ออกก่อน เพื่อคำนวณใหม่ไม่ให้ซ้ำซ้อน
                 let records = existingRecords.filter(r => !dates.includes(r.date));
 
-                // เก็บค่าจากช่อง input ทุกช่องของนักเรียนคนนี้ในชั้นปีนี้
+                let absenceCount = 0;
+                let leaveCount = 0;
+                let presentCount = 0;
+
                 dates.forEach(date => {
                     const inputEl = document.querySelector(`input.status-input[data-student="${s.id}"][data-date="${date}"]`);
                     if (inputEl) {
-                        let val = inputEl.value.trim();
-                        dailyStatus[date] = val;
+                        const normalized = normalizeStatusValue(inputEl.value);
+                        const statusType = classifyStatus(normalized);
+                        dailyStatus[date] = normalized;
 
-                        // วิเคราะห์: ถ้าช่องว่าง (ไม่ใส่ ✅ หรือ /) แปลว่า "ขาด" ในวันนั้น
-                        if (val === '') {
+                        if (statusType === 'absent') {
+                            absenceCount++;
                             records.push({
                                 date: date,
-                                session: 'การฝึกภาคปกติ',
+                                session: 'ขาด',
+                                type: 'absent',
                                 note: 'ขาดการเข้าร่วมกิจกรรม'
                             });
+                        } else if (statusType === 'leave') {
+                            leaveCount++;
+                            records.push({
+                                date: date,
+                                session: 'ลา',
+                                type: 'leave',
+                                note: approverNote
+                            });
+                        } else {
+                            presentCount++;
                         }
                     }
                 });
 
-                let absenceCount = records.length;
+                records.sort((a, b) => {
+                    const ka = getDateSortKey(a.date);
+                    const kb = getDateSortKey(b.date);
+                    if (ka.timestamp !== kb.timestamp) return ka.timestamp - kb.timestamp;
+                    return ka.sessionOrder - kb.sessionOrder;
+                });
 
                 batch.set(docRef, {
                     absenceCount: absenceCount,
+                    leaveCount: leaveCount,
+                    presentCount: presentCount,
                     records: records,
-                    dailyStatus: dailyStatus
+                    dailyStatus: dailyStatus,
+                    updatedBy: currentAdminName || 'Admin'
                 }, { merge: true });
-
-                successCount++;
             }
 
             await batch.commit();
+            delete pendingDrafts[selectedYear];
             alert(`บันทึกและวิเคราะห์ข้อมูลชั้นปีที่ ${selectedYear} สำเร็จเรียบร้อยแล้ว!`);
-            loadAdminData();
+            await loadAdminData();
         }
 
         // ฟังก์ชัน Export ข้อมูลเป็น CSV
         function exportToCSV() {
-            let csv = '\uFEFFรหัสประจำตัว,ชื่อ-นามสกุล,จำนวนครั้งที่ขาด\n';
+            let csv = '\uFEFFรหัสประจำตัว,ชื่อ-นามสกุล,มา (ครั้ง),ลา (ครั้ง),ขาด (ครั้ง)\n';
             db.collection("attendance").get().then(snapshot => {
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const student = masterStudents.find(s => s.id === doc.id);
                     if (student) {
-                        csv += `"${student.id}","${student.name}",${data.absenceCount || 0}\n`;
+                        csv += `"${student.id}","${student.name}",${data.presentCount || 0},${data.leaveCount || 0},${data.absenceCount || 0}\n`;
                     }
                 });
 
