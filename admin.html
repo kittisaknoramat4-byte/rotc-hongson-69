@@ -11,33 +11,31 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f4; }
 
-        /* สไตล์สำหรับล็อกคอลัมน์รหัส ชื่อ และรวมขาด ให้ติดกันฝั่งซ้ายทั้งบนมือถือและจอใหญ่ */
+        /* เลื่อนกลุ่มรหัส ชื่อ และรวมขาด ไปพร้อมกันเป็นก้อนเดียวในแนวแกน X */
+        .sticky-col-1,
+        .sticky-col-2,
+        .sticky-col-3 {
+            position: relative;
+            transform: translateX(var(--col-x, 0px));
+            background-color: #ffffff;
+            z-index: 20;
+            will-change: transform;
+        }
+
         .sticky-col-1 {
-            position: sticky;
-            left: 0;
             width: 92px;
             min-width: 92px;
             max-width: 92px;
-            background-color: #ffffff;
-            z-index: 20;
         }
         .sticky-col-2 {
-            position: sticky;
-            left: 92px;
             width: 148px;
             min-width: 148px;
             max-width: 148px;
-            background-color: #ffffff;
-            z-index: 20;
         }
         .sticky-col-3 {
-            position: sticky;
-            left: 240px;
             width: 64px;
             min-width: 64px;
             max-width: 64px;
-            background-color: #ffffff;
-            z-index: 20;
             box-shadow: 2px 0 6px -2px rgba(0, 0, 0, 0.15);
         }
 
@@ -48,13 +46,11 @@
                 max-width: 112px;
             }
             .sticky-col-2 {
-                left: 112px;
                 width: 208px;
                 min-width: 208px;
                 max-width: 208px;
             }
             .sticky-col-3 {
-                left: 320px;
                 width: 76px;
                 min-width: 76px;
                 max-width: 76px;
@@ -171,8 +167,24 @@
                             | พิมพ์ <code class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">ลา</code> ถ้าลา (ไม่นับว่าขาด)
                             | <strong>เว้นว่าง</strong> ถ้าขาด
                         </h3>
-                        <span class="text-[11px] text-stone-500">* คอลัมน์รหัส ชื่อ และรวมขาด ตรึงอยู่กับที่เมื่อเลื่อนแนวนอน</span>
+                        <span class="text-[11px] text-stone-500">* เลื่อนกลุ่มรหัส ชื่อ และรวมขาดได้อิสระตามแกน X</span>
                     </div>
+
+                    <!-- แถบเลื่อนตำแหน่งแกน X สำหรับกลุ่มรหัส + ชื่อ + รวมขาด -->
+                    <div class="px-3 sm:px-4 py-2.5 bg-stone-100 border-b flex items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="font-semibold text-stone-700 whitespace-nowrap">เลื่อนกลุ่มชื่อ-รวมขาด (X):</span>
+                            <input type="range" id="x-offset-slider" min="-220" max="220" value="0"
+                                oninput="updateLeftGroupX(this.value)"
+                                class="w-full max-w-xs accent-emerald-700 cursor-pointer">
+                            <span id="x-offset-label" class="font-mono text-stone-600 w-14 text-right">0px</span>
+                        </div>
+                        <button type="button" onclick="resetLeftGroupX()"
+                            class="bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 px-2.5 py-1 rounded-lg font-semibold whitespace-nowrap">
+                            รีเซ็ต
+                        </button>
+                    </div>
+
                     <div class="overflow-x-auto max-h-[70vh]">
                         <table class="text-xs text-left border-collapse w-max min-w-full" id="matrix-table">
                             <thead class="bg-stone-100 text-stone-700 border-b sticky top-0 z-30" id="matrix-head">
@@ -392,9 +404,24 @@
             { id: "0674400333", name: "นศท.หญิง ปาริฉัตร ไพรอาชาไนย", year: "3" },
             { id: "0674400334", name: "นศท.หญิง พรทิพา ฐิติบัญชา", year: "3" },
             { id: "0674400335", name: "นศท.หญิง พรทิพา ไพรสุริยะ", year: "3" },
-            { id: "0674400337", name: "นศท.หญิง พิมพ์เพชรจันทร์ สุนันต๊ะ", year: "3" },
-            { id: "0674400338", name: "นศท.หญิง พิมพ์สุภา เลาลี", year: "3" }
+            { id: "0674400337", name: "นศท.หญิง พิมพเพชรจันทร์ สุนันต๊ะ", year: "3" },
+            { id: "0674400338", name: "นศท.หญิง พิมพสุภา เลาลี", year: "3" }
         ];
+
+        // เลื่อนกลุ่มรหัส + ชื่อ + รวมขาด ไปพร้อมกันในแนวแกน X (ค้างตำแหน่งล่าสุดจนกว่าจะเปลี่ยนหรือรีเฟรชหน้าเว็บ)
+        function updateLeftGroupX(val) {
+            const px = `${Number(val) || 0}px`;
+            const table = document.getElementById('matrix-table');
+            if (table) table.style.setProperty('--col-x', px);
+            const label = document.getElementById('x-offset-label');
+            if (label) label.innerText = px;
+        }
+
+        function resetLeftGroupX() {
+            const slider = document.getElementById('x-offset-slider');
+            if (slider) slider.value = 0;
+            updateLeftGroupX(0);
+        }
 
         function adminLogin(e) {
             e.preventDefault();
@@ -414,12 +441,14 @@
             document.getElementById('admin-panel').classList.remove('hidden');
             document.getElementById('admin-user-display').classList.remove('hidden');
 
+            resetLeftGroupX();
             loadAdminData();
         }
 
         function adminLogout() {
             currentAdminName = "";
             pendingDrafts = {};
+            resetLeftGroupX();
             document.getElementById('admin-panel').classList.add('hidden');
             document.getElementById('admin-user-display').classList.add('hidden');
             document.getElementById('admin-login-box').classList.remove('hidden');
@@ -546,7 +575,7 @@
             let dates = await getAttendanceDates(selectedYear);
             const yearDrafts = pendingDrafts[selectedYear] || {};
 
-            // สร้างหัวตาราง (พร้อมคอลัมน์ตรึงซ้าย)
+            // สร้างหัวตาราง (พร้อมกลุ่มคอลัมน์รหัส ชื่อ และรวมขาด)
             let headHtml = `<tr>
                 <th class="p-2.5 sm:p-3 border-b sticky-col-1">เลขประจำตัว</th>
                 <th class="p-2.5 sm:p-3 border-b sticky-col-2">ชื่อ-นามสกุล</th>
